@@ -64,7 +64,7 @@ fn get_bucket(scoop: &Scoop, query: &str) {
             //println!("{:?}", &app);
             
             if file_name.contains(query) {
-                println!("{:?}", file_name);
+                println!("{}", file_name);
             }
         }
     }
