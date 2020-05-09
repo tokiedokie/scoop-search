@@ -1,6 +1,7 @@
 use std::env;
 use std::fs;
 use std::process;
+use std::path::PathBuf;
 
 fn main() {
     let scoop = Scoop::new();
@@ -8,17 +9,20 @@ fn main() {
         eprintln!("{}", err);
         process::exit(1);
     });
-    get_bucket(&scoop.dir, query);
+    get_bucket(&scoop, &query);
 }
 
 struct Scoop {
-    dir: String,
+    dir: PathBuf,
+    buckets_dir: PathBuf,
 }
 
 impl Scoop {
     fn new() -> Scoop {
         let dir = get_scoop_dir();
-        Scoop { dir }
+        let mut buckets_dir = PathBuf::from(dir.to_str().unwrap());//PathBuf::new();
+        buckets_dir.push("buckets");
+        Scoop { dir, buckets_dir }
     }
 }
 
@@ -32,19 +36,24 @@ fn get_query(mut args: env::Args) -> Result<String, &'static str> {
     Ok(query)
 }
 
-fn get_scoop_dir() -> String {
+fn get_scoop_dir() -> PathBuf {
     // Todo: original scoop search $env:SCOOP, (get_config 'rootPath'), "$env:USERPROFILE\scoop"
     // so this is not enough.
-    let userprofile = env::var("USERPROFILE").unwrap();
-    format!("{}\\scoop", userprofile)
+    let mut userprofile = PathBuf::from(env::var("USERPROFILE").unwrap());
+    userprofile.push("scoop");
+    userprofile
 }
 
-fn get_bucket(scoop_dir: &str, query: String) {
-    let buckets_dir = format!("{}\\buckets", scoop_dir);
-    //println!("{}", buckets_dir);
+fn get_bucket(scoop: &Scoop, query: &str) {
+    //println!("{}", scoop.buckets_dir);
 
-    let buckets = fs::read_dir(buckets_dir).unwrap();
-    for path in buckets {
-        println!("{:?}", path.unwrap().path().display())
+    let buckets = fs::read_dir(&scoop.buckets_dir).unwrap();
+
+    for bucket in buckets {
+        let bucket = bucket.unwrap();
+        let apps = fs::read_dir(bucket.path());
+        for app in apps {
+            println!("{:?}", app);
+        }
     }
 }
