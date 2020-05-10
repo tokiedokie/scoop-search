@@ -7,10 +7,29 @@ pub struct Bucket {
     pub name: String,
     pub apps: Vec<App>,
 }
+/*
+impl Bucket {
+    fn new(name, ) -> Bucket {
 
+    }
+}
+*/
 pub struct App {
     pub name: String,
     pub version: String,
+}
+
+impl App {
+    fn new(path: PathBuf) -> App {
+        let name = path
+            .file_stem()
+            .unwrap()
+            .to_os_string()
+            .into_string()
+            .unwrap();
+        let version = get_latest_version(&path).unwrap();
+        App { name, version }
+    }
 }
 
 pub struct Scoop {
@@ -66,7 +85,7 @@ fn has_root_path() -> Result<bool, Box<dyn Error>> {
 }
 
 pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
-    let buckets = search_in_local_bucket(scoop, query)?;
+    let buckets = search_in_local_buckets(scoop, query)?;
     display_apps(&buckets);
     Ok(())
 }
@@ -84,7 +103,7 @@ fn display_apps(buckets: &Vec<Bucket>) {
     }
 }
 
-fn search_in_local_bucket(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
+fn search_in_local_buckets(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
     let buckets = fs::read_dir(&scoop.buckets_dir)?;
     let mut result = Vec::new();
 
@@ -113,11 +132,7 @@ fn search_in_local_bucket(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box
             for file_stem in &file_stems {
                 let mut path = bucket.clone();
                 path.push(format!("{}.json", &file_stem));
-                let version = get_latest_version(&path)?;
-                apps.push(App {
-                    name: file_stem.to_string(),
-                    version,
-                })
+                apps.push(App::new(path));
             }
 
             result.push(Bucket {
@@ -129,6 +144,8 @@ fn search_in_local_bucket(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box
 
     Ok(result)
 }
+
+//fn search_query_in(bucket: Bucket, query: &str) -> Result<Bucket, Box<dyn Error>> {}
 
 fn get_latest_version(path: &Path) -> Result<String, Box<dyn Error>> {
     let manufest = fs::read_to_string(&path)?;
