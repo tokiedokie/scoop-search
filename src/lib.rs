@@ -62,10 +62,7 @@ fn has_root_path() -> Result<bool, Box<dyn Error>> {
     user_profile.push("config.json");
     let config_file = fs::read_to_string(&user_profile)?;
     let config: serde_json::Value = serde_json::from_str(&config_file)?;
-    Ok(match config.get("rootPath") {
-        Some(_) => true,
-        None => false,
-    })
+    Ok(config.get("rootPath").is_some())
 }
 
 pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
