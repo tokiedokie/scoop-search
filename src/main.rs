@@ -9,11 +9,12 @@ fn main() {
         eprintln!("{}", err);
         process::exit(1);
     });
-    let buckets = get_bucket(&scoop, &query);
+    let buckets = get_bucket(&scoop, &query).unwrap();
     for bucket in buckets {
-        println!("{}: ", bucket.name,);
+        println!("'{}' bucket: ", bucket.name,);
         for app in bucket.apps {
-            println!("{}", app)
+            println!("{} ({})", app.name, app.version);
         }
+        println!("");
     }
 }
