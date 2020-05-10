@@ -7,6 +7,11 @@ pub struct Bucket {
     pub apps: Vec<String>,
 }
 
+pub struct App {
+    name: String,
+    version: String
+}
+
 pub struct Scoop {
     dir: PathBuf,
     buckets_dir: PathBuf,
@@ -62,18 +67,6 @@ pub fn get_bucket(scoop: &Scoop, query: &str) -> Vec<Bucket> {
                 apps: file_name,
             });
         }
-
-        /*
-        for app in apps {
-            let file_name_osstr = app.unwrap().file_name();
-            let file_name = file_name_osstr.to_str().unwrap();
-            //println!("{:?}", &app);
-
-            if file_name.contains(query) {
-                println!("{}", file_name);
-            }
-        }
-        */
     }
 
     result
