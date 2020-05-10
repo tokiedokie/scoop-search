@@ -1,6 +1,6 @@
 # scoop-search
 
-## Instration
+## Installation
 
 ```sh
 scoop install https://raw.githubusercontent.com/tokiedokie/scoop-search/master/scoop-search.json
