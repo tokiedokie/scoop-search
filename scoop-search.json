@@ -1,0 +1,10 @@
+﻿{
+    "version":  "0.1.0",
+    "license":  "",
+    "extract_dir":  "",
+    "url":  "https://github.com/tokiedokie/scoop-search/releases/download/0.1.0/scoop-search.exe",
+    "depends":  "",
+    "homepage":  "",
+    "hash":  "5bce1e7cf9e57f8adb892910668308df68ccb9a4a6c526779b067c9ab8096806",
+    "bin":  "scoop-search.exe"
+}
