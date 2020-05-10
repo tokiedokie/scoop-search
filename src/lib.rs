@@ -30,26 +30,6 @@ impl App {
         let version = get_latest_version(&path).unwrap();
         App { name, version }
     }
-
-    fn remote_new(name: &str, url: &str) -> App {
-        let res = ureq::get(url).call().into_json().unwrap();        
-        
-        let content = res["content"].as_str().unwrap();
-        println!("contnt: {}", content);
-        let content_decoded = base64::decode(&content).unwrap();
-        println!("decode: {:?}", content_decoded);
-
-        let content_json: serde_json::Value = serde_json::from_slice(&content_decoded).unwrap();
-        println!("json: {}", content_json);
-        
-        let version = content_json["version"].as_str().unwrap().to_string();
-        println!("{:?}", content_json);
-        
-        App {
-            name: name.to_string(),
-            version: "1.43.1".to_string(),
-        }
-    }
 }
 
 pub struct Scoop {
@@ -173,6 +153,10 @@ fn get_latest_version(path: &Path) -> Result<String, Box<dyn Error>> {
     let version: String = manufest_json["version"].as_str().unwrap().to_string();
 
     Ok(version)
+}
+
+fn search_remote_buckets() {
+
 }
 
 #[cfg(test)]
