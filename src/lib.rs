@@ -33,7 +33,7 @@ pub fn get_query(mut args: env::Args) -> Result<String, &'static str> {
         None => return Err("Didn't get a query"),
     };
 
-    Ok(query)
+    Ok(query.to_lowercase())
 }
 
 fn get_scoop_dir() -> PathBuf {
