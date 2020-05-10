@@ -14,7 +14,6 @@ pub struct App {
 }
 
 pub struct Scoop {
-    dir: PathBuf,
     buckets_dir: PathBuf,
 }
 
@@ -23,7 +22,7 @@ impl Scoop {
         let dir = get_scoop_dir();
         let mut buckets_dir = PathBuf::from(dir.to_str().unwrap()); //PathBuf::new();
         buckets_dir.push("buckets");
-        Scoop { dir, buckets_dir }
+        Scoop { buckets_dir }
     }
 }
 
@@ -45,8 +44,23 @@ fn get_scoop_dir() -> PathBuf {
     userprofile
 }
 
-pub fn search(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
-    get_bucket(scoop, query)
+pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
+    let buckets = get_bucket(scoop, query)?;
+    display_apps(&buckets);
+    Ok(())
+}
+
+fn display_apps(buckets: &Vec<Bucket>) {
+    if buckets.len() == 0 {
+        println!("No matches found.");
+    }
+    for bucket in buckets {
+        println!("'{}' bucket: ", bucket.name,);
+        for app in &bucket.apps {
+            println!("{} ({})", app.name, app.version);
+        }
+        println!("");
+    }
 }
 
 pub fn get_bucket(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {

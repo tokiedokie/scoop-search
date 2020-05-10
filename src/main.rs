@@ -11,19 +11,17 @@ fn main() {
         process::exit(1);
     });
     
-    let buckets = search(&scoop, &query).unwrap_or_else(|err| {
+    /*
+    let buckets = run(&scoop, &query).unwrap_or_else(|err| {
         eprintln!("{}", err);
         process::exit(1);
     });
+    */
+
+    if let Err(e) = run(&scoop, &query) {
+        eprintln!("{}", e);
+        process::exit(1);
+    }
     
-    if buckets.len() == 0 {
-        println!("No matches found.");
-    }
-    for bucket in buckets {
-        println!("'{}' bucket: ", bucket.name,);
-        for app in bucket.apps {
-            println!("{} ({})", app.name, app.version);
-        }
-        println!("");
-    }
 }
+
