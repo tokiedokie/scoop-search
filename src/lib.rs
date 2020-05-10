@@ -105,7 +105,7 @@ fn has_root_path() -> Result<bool, Box<dyn Error>> {
 }
 
 pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
-    let buckets = search_in_local_buckets(scoop, query)?;
+    let buckets = search_local_buckets(scoop, query)?;
     display_apps(&buckets);
     Ok(())
 }
@@ -123,7 +123,7 @@ fn display_apps(buckets: &Vec<Bucket>) {
     }
 }
 
-fn search_in_local_buckets(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
+fn search_local_buckets(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
     let buckets = fs::read_dir(&scoop.buckets_dir)?;
     let mut result = Vec::new();
 
