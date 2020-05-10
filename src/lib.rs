@@ -39,7 +39,7 @@ pub fn get_query(mut args: env::Args) -> Result<String, &'static str> {
 fn get_scoop_dir() -> Result<PathBuf, Box<dyn Error>> {
     let scoop_dir = if env::var("SCOOP").is_ok() {
         PathBuf::from(env::var("SCOOP")?)
-    } else if has_rootPath()? {
+    } else if has_root_path()? {
         let mut user_profile = PathBuf::from(env::var("USERPROFILE")?);
         user_profile.push(".config");
         user_profile.push("scoop");
@@ -55,7 +55,7 @@ fn get_scoop_dir() -> Result<PathBuf, Box<dyn Error>> {
     Ok(scoop_dir)
 }
 
-fn has_rootPath() -> Result<bool, Box<dyn Error>> {
+fn has_root_path() -> Result<bool, Box<dyn Error>> {
     let mut user_profile = PathBuf::from(env::var("USERPROFILE")?);
     user_profile.push(".config");
     user_profile.push("scoop");
