@@ -33,6 +33,7 @@ impl App {
 }
 
 pub struct Scoop {
+    dir: PathBuf,
     buckets_dir: PathBuf,
 }
 
@@ -41,7 +42,7 @@ impl Scoop {
         let dir = get_scoop_dir().unwrap();
         let mut buckets_dir = PathBuf::from(dir.to_str().unwrap()); //PathBuf::new();
         buckets_dir.push("buckets");
-        Scoop { buckets_dir }
+        Scoop { dir, buckets_dir }
     }
 }
 
@@ -86,14 +87,15 @@ fn has_root_path() -> Result<bool, Box<dyn Error>> {
 
 pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
     let buckets = search_local_buckets(scoop, query)?;
-    display_apps(&buckets);
+    if buckets.len() == 0 {
+        println!("No matches found.");
+    } else {
+        display_apps(&buckets);
+    }
     Ok(())
 }
 
 fn display_apps(buckets: &Vec<Bucket>) {
-    if buckets.len() == 0 {
-        println!("No matches found.");
-    }
     for bucket in buckets {
         println!("'{}' bucket: ", bucket.name,);
         for app in &bucket.apps {
@@ -163,6 +165,7 @@ fn search_remote_buckets() {
 mod test {
     use super::*;
 
+    /*
     #[test]
     fn remote_new() {
         let reference = App{
@@ -173,4 +176,5 @@ mod test {
         assert_eq!(reference.name, target.name);
         assert_eq!(reference.version, target.version);
     }
+    */
 }
