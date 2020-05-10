@@ -57,7 +57,7 @@ pub fn get_bucket(scoop: &Scoop, query: &str) -> Vec<Bucket> {
         let apps = fs::read_dir(&bucket).unwrap();
 
         let file_name: Vec<String> = apps
-            .map(|app| app.unwrap().file_name().to_string_lossy().to_string())
+            .map(|app| app.unwrap().path().file_stem().unwrap().to_string_lossy().to_string())
             .filter(|file_name| file_name.contains(query))
             .collect();
 
