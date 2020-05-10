@@ -10,7 +10,7 @@ pub struct Bucket {
 
 pub struct App {
     pub name: String,
-    pub version: String
+    pub version: String,
 }
 
 pub struct Scoop {
@@ -57,7 +57,14 @@ pub fn get_bucket(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Err
         let apps = fs::read_dir(&bucket)?;
 
         let file_stems: Vec<String> = apps
-            .map(|app| app.unwrap().path().file_stem().unwrap().to_string_lossy().to_string())
+            .map(|app| {
+                app.unwrap()
+                    .path()
+                    .file_stem()
+                    .unwrap()
+                    .to_string_lossy()
+                    .to_string()
+            })
             .filter(|file_name| file_name.contains(query))
             .collect();
 
@@ -74,7 +81,6 @@ pub fn get_bucket(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Err
                 })
                 //let app = fs::read_to_string(PathBuf::from("file_stem")).unwrap();
             }
-
 
             result.push(Bucket {
                 name: bucket_name.to_string(),
