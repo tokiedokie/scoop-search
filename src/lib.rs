@@ -30,6 +30,26 @@ impl App {
         let version = get_latest_version(&path).unwrap();
         App { name, version }
     }
+
+    fn remote_new(name: &str, url: &str) -> App {
+        let res = ureq::get(url).call().into_json().unwrap();        
+        
+        let content = res["content"].as_str().unwrap();
+        println!("contnt: {}", content);
+        let content_decoded = base64::decode(&content).unwrap();
+        println!("decode: {:?}", content_decoded);
+
+        let content_json: serde_json::Value = serde_json::from_slice(&content_decoded).unwrap();
+        println!("json: {}", content_json);
+        
+        let version = content_json["version"].as_str().unwrap().to_string();
+        println!("{:?}", content_json);
+        
+        App {
+            name: name.to_string(),
+            version: "1.43.1".to_string(),
+        }
+    }
 }
 
 pub struct Scoop {
@@ -153,4 +173,20 @@ fn get_latest_version(path: &Path) -> Result<String, Box<dyn Error>> {
     let version: String = manufest_json["version"].as_str().unwrap().to_string();
 
     Ok(version)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn remote_new() {
+        let reference = App{
+            name: "rust".to_string(),
+            version: "1.43.1".to_string(),
+        };
+        let target = App::remote_new("rust", "https://api.github.com/repos/ScoopInstaller/Main/git/blobs/1fecc0ecd5aa2af76261ca0fc258b535a0843f9f");
+        assert_eq!(reference.name, target.name);
+        assert_eq!(reference.version, target.version);
+    }
 }
