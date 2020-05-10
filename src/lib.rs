@@ -87,7 +87,12 @@ fn has_root_path() -> Result<bool, Box<dyn Error>> {
 
 pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
     let buckets = search_local_buckets(scoop, query)?;
-    if buckets.len() > 0 {
+
+    if buckets
+        .iter()
+        .find(|bucket| bucket.apps.len() > 0)
+        .is_some()
+    {
         display_apps(&buckets);
     } else {
         let buckets = search_remote_buckets(scoop, &buckets, query).unwrap();
@@ -102,11 +107,13 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
 
 fn display_apps(buckets: &Vec<Bucket>) {
     for bucket in buckets {
-        println!("'{}' bucket: ", bucket.name,);
-        for app in &bucket.apps {
-            println!("    {} ({})", app.name, app.version);
+        if bucket.apps.len() > 0 {
+            println!("'{}' bucket: ", bucket.name,);
+            for app in &bucket.apps {
+                println!("    {} ({})", app.name, app.version);
+            }
+            println!("");
         }
-        println!("");
     }
 }
 
@@ -146,6 +153,11 @@ fn search_local_buckets(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<d
                 name: bucket_name.to_string(),
                 apps,
             });
+        } else {
+            result.push(Bucket {
+                name: bucket_name.to_string(),
+                apps: Vec::new(),
+            })
         }
     }
 
@@ -162,20 +174,44 @@ fn get_latest_version(path: &Path) -> Result<String, Box<dyn Error>> {
     Ok(version)
 }
 
-fn search_remote_buckets(scoop: &Scoop, buckets: &Vec<Bucket>, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
+fn search_remote_buckets(
+    scoop: &Scoop,
+    buckets: &Vec<Bucket>,
+    query: &str,
+) -> Result<Vec<Bucket>, Box<dyn Error>> {
     let mut buckets_file = PathBuf::from(scoop.dir.as_os_str());
-    
+
     buckets_file.push("apps\\scoop\\current\\buckets.json");
-    let buckets_json: serde_json::Value = serde_json::from_str(&fs::read_to_string(&buckets_file)?)?;
+    let buckets_json: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(&buckets_file)?)?;
     let buckets_map = buckets_json.as_object().unwrap();
     // buckets_map.iter().filter(|bucket| bucket.)
-    for bucket in buckets_map {
-        let mut bucket = PathBuf::from(bucket.1.as_str().unwrap().to_string());
-        let repository = bucket.file_stem().unwrap().to_os_string().to_string_lossy().to_string();
-        bucket.pop();
-        let user =  bucket.file_stem().unwrap().to_os_string().to_string_lossy().to_string();
-        let api_link = format!("https://api.github.com/repos/{}/{}/git/trees/HEAD?recursive=1", user, repository);
-        //println!("{}", api_link);
+    for bucket_tuple in buckets_map {
+        if buckets
+            .iter()
+            .find(|bucket| &bucket.name == bucket_tuple.0)
+            .is_none()
+        {
+            let mut bucket = PathBuf::from(bucket_tuple.1.as_str().unwrap().to_string());
+            let repository = bucket
+                .file_stem()
+                .unwrap()
+                .to_os_string()
+                .to_string_lossy()
+                .to_string();
+            bucket.pop();
+            let user = bucket
+                .file_stem()
+                .unwrap()
+                .to_os_string()
+                .to_string_lossy()
+                .to_string();
+            let api_link = format!(
+                "https://api.github.com/repos/{}/{}/git/trees/HEAD?recursive=1",
+                user, repository
+            );
+            println!("{}", api_link);
+        }
     }
     Ok(Vec::new())
 }
