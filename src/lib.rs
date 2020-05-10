@@ -89,7 +89,6 @@ fn get_latest_version(path: &Path) -> Result<String, Box<dyn Error>> {
     let manufest = fs::read_to_string(&path)?;
     let manufest_json: serde_json::Value = serde_json::from_str(&manufest)?;
     let version: String = manufest_json["version"].as_str().unwrap().to_string();
-    println!("{}", version);
 
     Ok(version)
 }
