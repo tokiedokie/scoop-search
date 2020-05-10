@@ -66,7 +66,7 @@ fn has_root_path() -> Result<bool, Box<dyn Error>> {
 }
 
 pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
-    let buckets = get_bucket(scoop, query)?;
+    let buckets = search_in_local_bucket(scoop, query)?;
     display_apps(&buckets);
     Ok(())
 }
@@ -84,7 +84,7 @@ fn display_apps(buckets: &Vec<Bucket>) {
     }
 }
 
-fn get_bucket(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
+fn search_in_local_bucket(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
     let buckets = fs::read_dir(&scoop.buckets_dir)?;
     let mut result = Vec::new();
 
@@ -118,7 +118,6 @@ fn get_bucket(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>>
                     name: file_stem.to_string(),
                     version,
                 })
-                //let app = fs::read_to_string(PathBuf::from("file_stem")).unwrap();
             }
 
             result.push(Bucket {
