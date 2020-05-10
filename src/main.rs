@@ -5,14 +5,17 @@ use scoop_search::*;
 
 fn main() {
     let scoop = Scoop::new();
+
     let query = get_query(env::args()).unwrap_or_else(|err| {
         eprintln!("{}", err);
         process::exit(1);
     });
+    
     let buckets = get_bucket(&scoop, &query).unwrap_or_else(|err| {
         eprintln!("{}", err);
         process::exit(1);
     });
+    
     if buckets.len() == 0 {
         println!("No matches found.");
     }
