@@ -10,6 +10,9 @@ fn main() {
         process::exit(1);
     });
     let buckets = get_bucket(&scoop, &query).unwrap();
+    if buckets.len() == 0 {
+        println!("No matches found.");
+    }
     for bucket in buckets {
         println!("'{}' bucket: ", bucket.name,);
         for app in bucket.apps {
