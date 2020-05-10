@@ -45,6 +45,10 @@ fn get_scoop_dir() -> PathBuf {
     userprofile
 }
 
+pub fn search(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
+    get_bucket(scoop, query)
+}
+
 pub fn get_bucket(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
     let buckets = fs::read_dir(&scoop.buckets_dir)?;
     let mut result = Vec::new();

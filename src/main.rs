@@ -11,7 +11,7 @@ fn main() {
         process::exit(1);
     });
     
-    let buckets = get_bucket(&scoop, &query).unwrap_or_else(|err| {
+    let buckets = search(&scoop, &query).unwrap_or_else(|err| {
         eprintln!("{}", err);
         process::exit(1);
     });
