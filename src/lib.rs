@@ -2,6 +2,11 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 
+pub struct Bucket {
+    pub name: String,
+    pub apps: Vec<String>,
+}
+
 pub struct Scoop {
     dir: PathBuf,
     buckets_dir: PathBuf,
@@ -34,20 +39,31 @@ fn get_scoop_dir() -> PathBuf {
     userprofile
 }
 
-pub fn get_bucket(scoop: &Scoop, query: &str) {
+pub fn get_bucket(scoop: &Scoop, query: &str) -> Vec<Bucket> {
     //println!("{}", scoop.buckets_dir);
 
     let buckets = fs::read_dir(&scoop.buckets_dir).unwrap();
+    let mut result = Vec::new();
 
     for bucket in buckets {
         let mut bucket = bucket.unwrap().path();
         bucket.push("bucket");
 
-        let apps = fs::read_dir(bucket).unwrap();
+        let apps = fs::read_dir(&bucket).unwrap();
+
+        let file_name: Vec<String> = apps
+            .map(|app| app.unwrap().file_name().to_string_lossy().to_string())
+            .filter(|file_name| file_name.contains(query))
+            .collect();
+
+        if file_name.len() > 0 {
+            result.push(Bucket {
+                name: bucket.to_string_lossy().to_string(),
+                apps: file_name,
+            });
+        }
+
         /*
-        let app = apps.filter(|filename| filename.as_ref().unwrap().file_name() == "games");
-        println!("{:?}", app);
-        */
         for app in apps {
             let file_name_osstr = app.unwrap().file_name();
             let file_name = file_name_osstr.to_str().unwrap();
@@ -57,5 +73,8 @@ pub fn get_bucket(scoop: &Scoop, query: &str) {
                 println!("{}", file_name);
             }
         }
+        */
     }
+
+    result
 }
