@@ -51,6 +51,7 @@ pub fn get_bucket(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Err
 
     for bucket in buckets {
         let mut bucket = bucket?.path();
+        let bucket_name = &bucket.file_name().unwrap().to_string_lossy().to_string();
         bucket.push("bucket");
 
         let apps = fs::read_dir(&bucket)?;
@@ -76,7 +77,7 @@ pub fn get_bucket(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Err
 
 
             result.push(Bucket {
-                name: bucket.to_string_lossy().to_string(),
+                name: bucket_name.to_string(),
                 apps,
             });
         }
