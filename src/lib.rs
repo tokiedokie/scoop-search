@@ -87,10 +87,15 @@ fn has_root_path() -> Result<bool, Box<dyn Error>> {
 
 pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
     let buckets = search_local_buckets(scoop, query)?;
-    if buckets.len() == 0 {
-        println!("No matches found.");
-    } else {
+    if buckets.len() > 0 {
         display_apps(&buckets);
+    } else {
+        let buckets = search_remote_buckets(scoop, &buckets, query).unwrap();
+        if buckets.len() > 0 {
+            display_apps(&buckets);
+        } else {
+            println!("No matches found.");
+        }
     }
     Ok(())
 }
@@ -157,8 +162,22 @@ fn get_latest_version(path: &Path) -> Result<String, Box<dyn Error>> {
     Ok(version)
 }
 
-fn search_remote_buckets() {
-
+fn search_remote_buckets(scoop: &Scoop, buckets: &Vec<Bucket>, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
+    let mut buckets_file = PathBuf::from(scoop.dir.as_os_str());
+    
+    buckets_file.push("apps\\scoop\\current\\buckets.json");
+    let buckets_json: serde_json::Value = serde_json::from_str(&fs::read_to_string(&buckets_file)?)?;
+    let buckets_map = buckets_json.as_object().unwrap();
+    // buckets_map.iter().filter(|bucket| bucket.)
+    for bucket in buckets_map {
+        let mut bucket = PathBuf::from(bucket.1.as_str().unwrap().to_string());
+        let repository = bucket.file_stem().unwrap().to_os_string().to_string_lossy().to_string();
+        bucket.pop();
+        let user =  bucket.file_stem().unwrap().to_os_string().to_string_lossy().to_string();
+        let api_link = format!("https://api.github.com/repos/{}/{}/git/trees/HEAD?recursive=1", user, repository);
+        //println!("{}", api_link);
+    }
+    Ok(Vec::new())
 }
 
 #[cfg(test)]
