@@ -19,7 +19,7 @@ pub struct Scoop {
 
 impl Scoop {
     pub fn new() -> Scoop {
-        let dir = get_scoop_dir();
+        let dir = get_scoop_dir().unwrap();
         let mut buckets_dir = PathBuf::from(dir.to_str().unwrap()); //PathBuf::new();
         buckets_dir.push("buckets");
         Scoop { buckets_dir }
@@ -36,12 +36,36 @@ pub fn get_query(mut args: env::Args) -> Result<String, &'static str> {
     Ok(query.to_lowercase())
 }
 
-fn get_scoop_dir() -> PathBuf {
-    // Todo: original scoop search $env:SCOOP, (get_config 'rootPath'), "$env:USERPROFILE\scoop"
-    // so this is not enough.
-    let mut userprofile = PathBuf::from(env::var("USERPROFILE").unwrap());
-    userprofile.push("scoop");
-    userprofile
+fn get_scoop_dir() -> Result<PathBuf, Box<dyn Error>> {
+    let scoop_dir = if env::var("SCOOP").is_ok() {
+        PathBuf::from(env::var("SCOOP")?)
+    } else if has_rootPath()? {
+        let mut user_profile = PathBuf::from(env::var("USERPROFILE")?);
+        user_profile.push(".config");
+        user_profile.push("scoop");
+        user_profile.push("config.json");
+        let config_file = fs::read_to_string(&user_profile)?;
+        let config: serde_json::Value = serde_json::from_str(&config_file)?;
+        PathBuf::from(config["rootDir"].as_str().unwrap().to_string())
+    } else {
+        let mut user_profile = PathBuf::from(env::var("USERPROFILE")?);
+        user_profile.push("scoop");
+        user_profile
+    };
+    Ok(scoop_dir)
+}
+
+fn has_rootPath() -> Result<bool, Box<dyn Error>> {
+    let mut user_profile = PathBuf::from(env::var("USERPROFILE")?);
+    user_profile.push(".config");
+    user_profile.push("scoop");
+    user_profile.push("config.json");
+    let config_file = fs::read_to_string(&user_profile)?;
+    let config: serde_json::Value = serde_json::from_str(&config_file)?;
+    Ok(match config.get("rootPath") {
+        Some(_) => true,
+        None => false,
+    })
 }
 
 pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
@@ -57,13 +81,13 @@ fn display_apps(buckets: &Vec<Bucket>) {
     for bucket in buckets {
         println!("'{}' bucket: ", bucket.name,);
         for app in &bucket.apps {
-            println!("{} ({})", app.name, app.version);
+            println!("    {} ({})", app.name, app.version);
         }
         println!("");
     }
 }
 
-pub fn get_bucket(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
+fn get_bucket(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
     let buckets = fs::read_dir(&scoop.buckets_dir)?;
     let mut result = Vec::new();
 

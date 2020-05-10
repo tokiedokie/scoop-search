@@ -10,7 +10,7 @@ fn main() {
         eprintln!("{}", err);
         process::exit(1);
     });
-    
+
     /*
     let buckets = run(&scoop, &query).unwrap_or_else(|err| {
         eprintln!("{}", err);
@@ -22,6 +22,4 @@ fn main() {
         eprintln!("{}", e);
         process::exit(1);
     }
-    
 }
-
