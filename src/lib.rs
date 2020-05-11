@@ -223,7 +223,7 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
         let local_bucket_names = &bucket_paths.iter().map(|path| Bucket::get_name(path)).collect();
         let remote_names_urls = Bucket::get_remote_names_urls(&scoop, &local_bucket_names);
         for remote_name_url in remote_names_urls {
-            remote_url = remote_name_url.1;
+            let remote_url = remote_name_url.1;
         }
         /*
         let buckets = &bucket_paths.iter().map(|path| Bucket { name: Bucket::get_name(&path), apps: Vec::new() }).collect();
@@ -307,7 +307,7 @@ fn search_apps(apps: &Vec<App>, query: &str) -> Vec<App> {
 }
 
 fn search_remote_apps(remote_url: &str, query: &str) -> Vec<App> {
-    
+    Vec::new()
 }
 
 /*
