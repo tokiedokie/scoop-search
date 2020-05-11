@@ -174,8 +174,6 @@ fn search_local_buckets(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<d
     Ok(result)
 }
 
-//fn search_query_in(bucket: Bucket, query: &str) -> Result<Bucket, Box<dyn Error>> {}
-
 fn get_version_bin(path: &Path) -> Result<(String, Vec<String>), Box<dyn Error>> {
     let manufest = fs::read_to_string(&path)?;
     let manufest_json: serde_json::Value = serde_json::from_str(&manufest)?;
@@ -193,7 +191,6 @@ fn get_version_bin(path: &Path) -> Result<(String, Vec<String>), Box<dyn Error>>
                     }
                 },
             }
-            //.iter().map(|bin| *bin.as_str()?).collect()
         },
         None => Vec::new(),
     };
@@ -212,7 +209,6 @@ fn search_remote_buckets(
     let buckets_json: serde_json::Value =
         serde_json::from_str(&fs::read_to_string(&buckets_file)?)?;
     let buckets_map = buckets_json.as_object().unwrap();
-    // buckets_map.iter().filter(|bucket| bucket.)
 
     let mut result: Vec<Bucket> = Vec::new();
 
@@ -256,7 +252,6 @@ fn search_remote_buckets(
 
 fn search_remote_bucket(url: &str, query: &str) -> Result<Vec<App>, Box<dyn Error>> {
     let response_json = ureq::get(url).call().into_json()?;
-    //println!("{:?}", response_json["tree"][1]["path"]);
 
     let tree = response_json.get("tree").expect("Can't get repository");
 
