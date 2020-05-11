@@ -177,15 +177,14 @@ fn search_local_buckets(scoop: &Scoop, query: &str) -> Option<Vec<Bucket>> {
 */
 
 fn get_buckets(scoop: &Scoop) -> Result<Vec<Bucket>, Box<dyn Error>> {
-    let buckets = fs::read_dir(&scoop.buckets_dir)?;
+    let bucket_paths = Bucket::get_bucket_paths(scoop);
     let mut result = Vec::new();
 
-    for bucket in buckets {
-        let mut bucket = bucket?.path();
-        let bucket_name = &bucket.file_name().unwrap().to_string_lossy().to_string();
-        bucket.push("bucket");
+    for mut bucket_path in bucket_paths {
+        let bucket_name = &bucket_path.file_name().unwrap().to_string_lossy().to_string();
+        bucket_path.push("bucket");
 
-        let app_files = fs::read_dir(&bucket)?;
+        let app_files = fs::read_dir(&bucket_path)?;
 
         let app_paths: Vec<PathBuf> = app_files.map(|app| app.unwrap().path()).collect();
 
