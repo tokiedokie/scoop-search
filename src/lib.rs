@@ -30,8 +30,35 @@ impl App {
             .to_os_string()
             .into_string()
             .unwrap();
-        let (version, bin) = get_version_bin(&path).unwrap();
+        let (version, bin) = App::get_version_bin(&path).unwrap();
         App { name, version, bin }
+    }
+
+    fn get_version_bin(path: &Path) -> Result<(String, Vec<String>), Box<dyn Error>> {
+        let manufest = fs::read_to_string(&path)?;
+        let manufest_json: serde_json::Value = serde_json::from_str(&manufest)?;
+
+        let version: String = manufest_json["version"].as_str().unwrap().to_string();
+
+        let bin: Vec<String> = match manufest_json.get("bin") {
+            Some(x) => match x.as_str() {
+                Some(bin) => vec![bin.to_string()],
+                None => match x.as_array() {
+                    Some(bins) => bins
+                        .clone()
+                        .iter()
+                        .map(|bin| match bin.as_str() {
+                            Some(str) => str.to_string(),
+                            None => String::new(),
+                        })
+                        .collect(),
+                    None => Vec::new(),
+                },
+            },
+            None => Vec::new(),
+        };
+
+        Ok((version, bin))
     }
 }
 
@@ -43,11 +70,42 @@ pub struct Scoop {
 
 impl Scoop {
     pub fn new() -> Scoop {
-        let dir = get_scoop_dir().unwrap();
+        let dir = Scoop::get_scoop_dir().unwrap();
         let mut buckets_dir = PathBuf::from(dir.to_str().unwrap()); //PathBuf::new();
         buckets_dir.push("buckets");
         Scoop { dir, buckets_dir }
     }
+
+    fn get_scoop_dir() -> Result<PathBuf, Box<dyn Error>> {
+        let scoop_dir = if env::var("SCOOP").is_ok() {
+            PathBuf::from(env::var("SCOOP")?)
+        } else if Scoop::has_root_path()? {
+            let mut user_profile = PathBuf::from(env::var("USERPROFILE")?);
+            user_profile.push(".config");
+            user_profile.push("scoop");
+            user_profile.push("config.json");
+            let config_file = fs::read_to_string(&user_profile)?;
+            let config: serde_json::Value = serde_json::from_str(&config_file)?;
+            PathBuf::from(config["rootDir"].as_str().unwrap().to_string())
+        } else {
+            let mut user_profile = PathBuf::from(env::var("USERPROFILE")?);
+            user_profile.push("scoop");
+            user_profile
+        };
+
+        Ok(scoop_dir)
+    }
+
+    fn has_root_path() -> Result<bool, Box<dyn Error>> {
+        let mut user_profile = PathBuf::from(env::var("USERPROFILE")?);
+        user_profile.push(".config");
+        user_profile.push("scoop");
+        user_profile.push("config.json");
+        let config_file = fs::read_to_string(&user_profile)?;
+        let config: serde_json::Value = serde_json::from_str(&config_file)?;
+        Ok(config.get("rootPath").is_some())
+    }
+
 }
 
 pub fn get_query(mut args: env::Args) -> Result<String, &'static str> {
@@ -58,35 +116,6 @@ pub fn get_query(mut args: env::Args) -> Result<String, &'static str> {
     };
 
     Ok(query.to_lowercase())
-}
-
-fn get_scoop_dir() -> Result<PathBuf, Box<dyn Error>> {
-    let scoop_dir = if env::var("SCOOP").is_ok() {
-        PathBuf::from(env::var("SCOOP")?)
-    } else if has_root_path()? {
-        let mut user_profile = PathBuf::from(env::var("USERPROFILE")?);
-        user_profile.push(".config");
-        user_profile.push("scoop");
-        user_profile.push("config.json");
-        let config_file = fs::read_to_string(&user_profile)?;
-        let config: serde_json::Value = serde_json::from_str(&config_file)?;
-        PathBuf::from(config["rootDir"].as_str().unwrap().to_string())
-    } else {
-        let mut user_profile = PathBuf::from(env::var("USERPROFILE")?);
-        user_profile.push("scoop");
-        user_profile
-    };
-    Ok(scoop_dir)
-}
-
-fn has_root_path() -> Result<bool, Box<dyn Error>> {
-    let mut user_profile = PathBuf::from(env::var("USERPROFILE")?);
-    user_profile.push(".config");
-    user_profile.push("scoop");
-    user_profile.push("config.json");
-    let config_file = fs::read_to_string(&user_profile)?;
-    let config: serde_json::Value = serde_json::from_str(&config_file)?;
-    Ok(config.get("rootPath").is_some())
 }
 
 pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
@@ -108,15 +137,17 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
 
 fn display_apps(buckets: &Vec<Bucket>) {
     for bucket in buckets {
-        println!("'{}' bucket: ", bucket.name,);
-        for app in &bucket.apps {
-            if app.version != "" {
-                println!("    {} ({})", app.name, app.version);
-            } else {
-                println!("    {}", app.name);
+        if bucket.apps.len() > 0 {
+            println!("'{}' bucket: ", bucket.name,);
+            for app in &bucket.apps {
+                if app.version != "" {
+                    println!("    {} ({})", app.name, app.version);
+                } else {
+                    println!("    {}", app.name);
+                }
             }
+            println!("");
         }
-        println!("");
     }
 }
 
@@ -184,74 +215,6 @@ fn search_apps(buckets: &Vec<Bucket>, query: &str) -> Option<Vec<Bucket>> {
     }
 
     Some(result)
-}
-
-fn search_local_buckets(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
-    let buckets = fs::read_dir(&scoop.buckets_dir)?;
-    let mut result = Vec::new();
-
-    for bucket in buckets {
-        let mut bucket = bucket?.path();
-        let bucket_name = &bucket.file_name().unwrap().to_string_lossy().to_string();
-        bucket.push("bucket");
-
-        let apps = fs::read_dir(&bucket)?;
-
-        let file_stems: Vec<String> = apps
-            .map(|app| {
-                app.unwrap()
-                    .path()
-                    .file_stem()
-                    .unwrap()
-                    .to_string_lossy()
-                    .to_string()
-            })
-            .filter(|file_name| file_name.contains(query))
-            .collect();
-
-        if file_stems.len() > 0 {
-            let mut apps: Vec<App> = Vec::new();
-
-            for file_stem in &file_stems {
-                let mut path = bucket.clone();
-                path.push(format!("{}.json", &file_stem));
-                apps.push(App::new(path));
-            }
-
-            result.push(Bucket::new(bucket_name.to_string(), apps));
-        } else {
-            result.push(Bucket::new(bucket_name.to_string(), Vec::new()));
-        }
-    }
-
-    Ok(result)
-}
-
-fn get_version_bin(path: &Path) -> Result<(String, Vec<String>), Box<dyn Error>> {
-    let manufest = fs::read_to_string(&path)?;
-    let manufest_json: serde_json::Value = serde_json::from_str(&manufest)?;
-
-    let version: String = manufest_json["version"].as_str().unwrap().to_string();
-
-    let bin: Vec<String> = match manufest_json.get("bin") {
-        Some(x) => match x.as_str() {
-            Some(bin) => vec![bin.to_string()],
-            None => match x.as_array() {
-                Some(bins) => bins
-                    .clone()
-                    .iter()
-                    .map(|bin| match bin.as_str() {
-                        Some(str) => str.to_string(),
-                        None => String::new(),
-                    })
-                    .collect(),
-                None => Vec::new(),
-            },
-        },
-        None => Vec::new(),
-    };
-
-    Ok((version, bin))
 }
 
 fn search_remote_buckets(scoop: &Scoop, buckets: &Vec<Bucket>, query: &str) -> Option<Vec<Bucket>> {
