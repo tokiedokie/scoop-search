@@ -7,13 +7,13 @@ pub struct Bucket {
     pub name: String,
     pub apps: Vec<App>,
 }
-/*
-impl Bucket {
-    fn new(name, ) -> Bucket {
 
+impl Bucket {
+    fn new(name: String, apps: Vec<App>) -> Bucket {
+        Bucket { name, apps }
     }
 }
-*/
+
 pub struct App {
     pub name: String,
     pub version: String,
@@ -164,15 +164,9 @@ fn search_local_buckets(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<d
                 apps.push(App::new(path));
             }
 
-            result.push(Bucket {
-                name: bucket_name.to_string(),
-                apps,
-            });
+            result.push(Bucket::new(bucket_name.to_string(), apps));
         } else {
-            result.push(Bucket {
-                name: bucket_name.to_string(),
-                apps: Vec::new(),
-            })
+            result.push(Bucket::new(bucket_name.to_string(), Vec::new()));
         }
     }
 
@@ -231,15 +225,9 @@ fn search_remote_buckets(
 
             let apps = search_remote_bucket(&api_link, query)?;
 
-            Bucket {
-                name: bucket_tuple.0.to_string(),
-                apps,
-            }
+            Bucket::new(bucket_tuple.0.to_string(), apps)
         } else {
-            Bucket {
-                name: bucket_tuple.0.to_string(),
-                apps: Vec::new(),
-            }
+            Bucket::new(bucket_tuple.0.to_string(), Vec::new())
         };
 
         result.push(bucket);
