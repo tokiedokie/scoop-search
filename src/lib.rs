@@ -3,9 +3,9 @@ use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub struct Bucket {
-    pub name: String,
-    pub apps: Vec<App>,
+struct Bucket {
+    name: String,
+    apps: Vec<App>,
 }
 
 impl Bucket {
@@ -14,9 +14,10 @@ impl Bucket {
     }
 }
 
-pub struct App {
-    pub name: String,
-    pub version: String,
+struct App {
+    name: String,
+    version: String,
+    bin: Vec<String>,
 }
 
 impl App {
