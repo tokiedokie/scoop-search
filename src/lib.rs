@@ -29,6 +29,46 @@ impl Bucket {
 
         bucket_dirs.map(|path| path.unwrap().path()).collect()
     }
+
+    fn get_remote_names_urls(scoop: &Scoop, local_bucket_names: &Vec<String>) -> Vec<(String, String)> {
+        let mut buckets_file = PathBuf::from(scoop.dir.as_os_str());
+        buckets_file.push("apps\\scoop\\current\\buckets.json");
+        
+        let buckets_json: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(&buckets_file).unwrap()).unwrap();
+        let buckets_map = buckets_json.as_object().unwrap();
+     
+        let mut result: Vec<(String, String)> = Vec::new();
+        
+        for bucket_tuple in buckets_map {
+            if local_bucket_names
+                .iter()
+                .find(|name| name == &bucket_tuple.0)
+                .is_none()
+            {
+                let mut bucket = PathBuf::from(bucket_tuple.1.as_str().unwrap().to_string());
+                let repository = bucket
+                    .file_stem()
+                    .unwrap()
+                    .to_os_string()
+                    .to_string_lossy()
+                    .to_string();
+                bucket.pop();
+                let user = bucket
+                    .file_stem()
+                    .unwrap()
+                    .to_os_string()
+                    .to_string_lossy()
+                    .to_string();
+                let api_link = format!(
+                    "https://api.github.com/repos/{}/{}/git/trees/HEAD?recursive=1",
+                    user, repository
+                );
+                result.push((*bucket_tuple.0, api_link));
+            }
+        }
+        result
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -180,11 +220,18 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
     }
 
     if !app_in_local {
+        let local_bucket_names = &bucket_paths.iter().map(|path| Bucket::get_name(path)).collect();
+        let remote_names_urls = Bucket::get_remote_names_urls(&scoop, &local_bucket_names);
+        for remote_name_url in remote_names_urls {
+            remote_url = remote_name_url.1;
+        }
+        /*
         let buckets = &bucket_paths.iter().map(|path| Bucket { name: Bucket::get_name(&path), apps: Vec::new() }).collect();
         match search_remote_buckets(&scoop, &buckets, query) {
             Some(remote_buckets) => display_remote_apps(&remote_buckets),
             None => println!("No matches Found"),
         }
+        */
     }
 
     Ok(())
@@ -212,14 +259,12 @@ fn display_apps(bucket_name: &str, apps: &Vec<App>) {
 }
 
 
-fn display_remote_apps(buckets: &Vec<Bucket>) {
+fn display_remote_apps(bucket_name: &str, apps: &Vec<App>) {
     println!("Results from other known buckets...");
     println!("(add them using 'scoop bucket add <name>')");
     println!("");
 
-    for bucket in buckets {
-        display_apps(&bucket.name, &bucket.apps);
-    }
+    display_apps(&bucket_name, &apps);
 }
 
 /*
@@ -259,6 +304,10 @@ fn search_apps(apps: &Vec<App>, query: &str) -> Vec<App> {
     }
 
     result
+}
+
+fn search_remote_apps(remote_url: &str, query: &str) -> Vec<App> {
+    
 }
 
 /*
