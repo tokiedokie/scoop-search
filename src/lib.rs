@@ -13,6 +13,10 @@ impl Bucket {
     fn new(name: String, apps: Vec<App>) -> Bucket {
         Bucket { name, apps }
     }
+
+    fn get_buckets_path(scoop: &Scoop) -> Vec(PathBuf) {
+        
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -118,7 +122,6 @@ pub fn get_query(mut args: env::Args) -> Result<String, &'static str> {
 }
 
 pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
-    //let buckets = search_local_buckets(scoop, query)?;
 
     let buckets = get_buckets(scoop).unwrap();
     let filtered_buckets = search_apps(&buckets, query);
@@ -163,6 +166,10 @@ fn display_remote_apps(buckets: &Vec<Bucket>) {
     println!("");
 
     display_apps(buckets);
+}
+
+fn search_local_buckets(scoop: &Scoop, query: &str) -> Option<Vec<Bucket>> {
+
 }
 
 fn get_buckets(scoop: &Scoop) -> Result<Vec<Bucket>, Box<dyn Error>> {
