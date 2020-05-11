@@ -161,9 +161,10 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
         },
     }
     */
+    let mut app_in_local = false;
 
     let bucket_paths = Bucket::get_bucket_paths(scoop);
-    for bucket_path in bucket_paths {
+    for bucket_path in &bucket_paths {
         let bucket_name = Bucket::get_name(&bucket_path);
         let app_paths = App::get_app_paths(&bucket_path);
 
@@ -171,7 +172,19 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
 
         let filtered_apps = search_apps(&apps, query);
 
+        if filtered_apps.len() > 0 {
+            app_in_local = true;
+        }
+
         display_apps(&bucket_name, &filtered_apps);
+    }
+
+    if !app_in_local {
+        let buckets = &bucket_paths.iter().map(|path| Bucket { name: Bucket::get_name(&path), apps: Vec::new() }).collect();
+        match search_remote_buckets(&scoop, &buckets, query) {
+            Some(remote_buckets) => display_remote_apps(&remote_buckets),
+            None => println!("No matches Found"),
+        }
     }
 
     Ok(())
@@ -198,16 +211,18 @@ fn display_apps(bucket_name: &str, apps: &Vec<App>) {
     }
 }
 
-/*
+
 fn display_remote_apps(buckets: &Vec<Bucket>) {
     println!("Results from other known buckets...");
     println!("(add them using 'scoop bucket add <name>')");
     println!("");
 
-    display_apps(buckets);
+    for bucket in buckets {
+        display_apps(&bucket.name, &bucket.apps);
+    }
 }
 
-
+/*
 fn search_local_buckets(scoop: &Scoop, query: &str) -> Option<Vec<Bucket>> {
     let bucket_paths =
 
