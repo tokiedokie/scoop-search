@@ -15,7 +15,12 @@ impl Bucket {
     }
 
     fn get_name(path: &PathBuf) -> String {
-        let name = path.file_name().unwrap().to_os_string().into_string().unwrap();
+        let name = path
+            .file_name()
+            .unwrap()
+            .to_os_string()
+            .into_string()
+            .unwrap();
         name
     }
 
@@ -26,7 +31,7 @@ impl Bucket {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 struct App {
     name: String,
     version: String,
@@ -34,14 +39,19 @@ struct App {
 }
 
 impl App {
-    fn new(path: PathBuf) -> App {
+    fn new(path: &PathBuf) -> App {
         let name = App::get_name(&path);
         let (version, bin) = App::get_version_bin(&path).unwrap();
         App { name, version, bin }
     }
 
     fn get_name(path: &PathBuf) -> String {
-        let name = path.file_stem().unwrap().to_os_string().into_string().unwrap();
+        let name = path
+            .file_stem()
+            .unwrap()
+            .to_os_string()
+            .into_string()
+            .unwrap();
         name
     }
 
@@ -72,7 +82,10 @@ impl App {
         Ok((version, bin))
     }
 
-    fn get_app_paths(path: &PathBuf) -> Vec<PathBuf> {
+    fn get_app_paths(bucket_path: &PathBuf) -> Vec<PathBuf> {
+        let mut path: PathBuf = PathBuf::from(bucket_path);
+        
+        path.push("bucket");
         fs::read_dir(path)
             .unwrap()
             .map(|path| path.unwrap().path())
@@ -153,18 +166,21 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
     for bucket_path in bucket_paths {
         let bucket_name = Bucket::get_name(&bucket_path);
         let app_paths = App::get_app_paths(&bucket_path);
+
         let apps: Vec<App> = app_paths.iter().map(|path| App::new(path)).collect();
+
         let filtered_apps = search_apps(&apps, query);
-        display_apps(backet_name , apps);
+
+        display_apps(&bucket_name, &filtered_apps);
     }
 
     Ok(())
 }
 
 fn display_apps(bucket_name: &str, apps: &Vec<App>) {
-    if bucket.apps.len() > 0 {
-        println!("'{}' bucket: ", bucket.name,);
-        for app in &bucket.apps {
+    if apps.len() > 0 {
+        println!("'{}' bucket: ", bucket_name,);
+        for app in apps {
             if app.version != "" {
                 if app.bin.len() > 0 {
                     println!(
@@ -182,6 +198,7 @@ fn display_apps(bucket_name: &str, apps: &Vec<App>) {
     }
 }
 
+/*
 fn display_remote_apps(buckets: &Vec<Bucket>) {
     println!("Results from other known buckets...");
     println!("(add them using 'scoop bucket add <name>')");
@@ -192,17 +209,22 @@ fn display_remote_apps(buckets: &Vec<Bucket>) {
 
 
 fn search_local_buckets(scoop: &Scoop, query: &str) -> Option<Vec<Bucket>> {
-    let bucket_paths = 
-    
+    let bucket_paths =
+
     Some()
 }
+*/
 
 fn search_apps(apps: &Vec<App>, query: &str) -> Vec<App> {
     let mut result: Vec<App> = Vec::new();
-    
+
     for app in apps {
         if app.name.contains(query) {
-            result.push(*app);
+            result.push(App {
+                    name: app.name.clone(),
+                    version: app.version.clone(),
+                    bin: Vec::new(),
+            });
         } else {
             for bin in &app.bin {
                 let bin = Path::new(&bin)
@@ -224,7 +246,7 @@ fn search_apps(apps: &Vec<App>, query: &str) -> Vec<App> {
     result
 }
 
-
+/*
 fn get_buckets(scoop: &Scoop) -> Result<Vec<Bucket>, Box<dyn Error>> {
     let bucket_paths = Bucket::get_bucket_paths(scoop);
     let mut result = Vec::new();
@@ -250,7 +272,7 @@ fn get_buckets(scoop: &Scoop) -> Result<Vec<Bucket>, Box<dyn Error>> {
 
     Ok(result)
 }
-
+*/
 /*
 fn search_apps(buckets: &Vec<Bucket>, query: &str) -> Option<Vec<Bucket>> {
     let mut result: Vec<Bucket> = Vec::new();
@@ -391,26 +413,20 @@ mod test {
 
     #[test]
     fn test_search_apps() {
-        let buckets = vec![Bucket {
-            name: String::from("test_bucket"),
-            apps: vec![App {
-                name: String::from("test_app"),
-                version: String::from("test_version"),
-                bin: vec![String::from("test_bin")],
-            }],
+        let apps = vec![App {
+            name: String::from("test_app"),
+            version: String::from("test_version"),
+            bin: vec![String::from("test_bin")],
         }];
         let query = String::from("test");
 
-        let expect = vec![Bucket {
-            name: String::from("test_bucket"),
-            apps: vec![App {
-                name: String::from("test_app"),
-                version: String::from("test_version"),
-                bin: Vec::new(),
-            }],
+        let expect = vec![App {
+            name: String::from("test_app"),
+            version: String::from("test_version"),
+            bin: Vec::new(),
         }];
 
-        let actual = search_apps(&buckets, &query).unwrap();
+        let actual = search_apps(&apps, &query);
 
         assert_eq!(expect, actual);
     }
