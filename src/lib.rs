@@ -3,6 +3,8 @@ use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+#[derive(Debug)]
+#[derive(PartialEq)]
 struct Bucket {
     name: String,
     apps: Vec<App>,
@@ -14,6 +16,8 @@ impl Bucket {
     }
 }
 
+#[derive(Debug)]
+#[derive(PartialEq)]
 struct App {
     name: String,
     version: String,
@@ -33,6 +37,8 @@ impl App {
     }
 }
 
+#[derive(Debug)]
+#[derive(PartialEq)]
 pub struct Scoop {
     dir: PathBuf,
     buckets_dir: PathBuf,
@@ -159,12 +165,27 @@ fn get_buckets(scoop: &Scoop) -> Result<Vec<Bucket>, Box<dyn Error>> {
 }
 
 fn search_apps(buckets: &Vec<Bucket>, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
+    let mut result: Vec<Bucket> = Vec::new();
+    
     for bucket in buckets {
-        let filtered_apps: Vec<apps> = bucket.apps
+        let filtered_apps: Vec<App> = bucket.apps
             .iter()
             .filter(|app| app.name.contains(query))
-            .map(|app| app.bin == String::new());
+            .map(|app| {
+                App {
+                    name: app.name.clone(),
+                    version: app.version.clone(),
+                    bin: Vec::new(),
+                }
+            })
+            .collect();
+        result.push(Bucket {
+            name: bucket.name.clone(),
+            apps: filtered_apps,
+        });
     }
+
+    Ok(result)
 }
 
 fn search_local_buckets(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
@@ -316,7 +337,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn search_apps() {
+    fn test_search_apps() {
         let buckets = vec!(
             Bucket {
                 name: String::from("test_bucket"),
@@ -331,7 +352,22 @@ mod test {
         );
         let query = String::from("test");
 
-        let result = search_apps(buckets, query).unwrap();
+        let expect = vec!(
+            Bucket {
+                name: String::from("test_bucket"),
+                apps: vec!(
+                    App {
+                        name: String::from("test_app"),
+                        version: String::from("test_version"),
+                        bin: Vec::new(),
+                    },
+                )
+            }
+        );
+
+        let actual = search_apps(&buckets, &query).unwrap();
+
+        assert_eq!(expect, actual);
     }
     /*
     fn remote_new() {
