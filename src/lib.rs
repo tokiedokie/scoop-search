@@ -113,7 +113,11 @@ fn display_apps(buckets: &Vec<Bucket>) {
         if bucket.apps.len() > 0 {
             println!("'{}' bucket: ", bucket.name,);
             for app in &bucket.apps {
-                println!("    {} ({})", app.name, app.version);
+                if app.version != "" {
+                    println!("    {} ({})", app.name, app.version);
+                } else {
+                    println!("    {}", app.name);
+                }
             }
             println!("");
         }
@@ -125,15 +129,7 @@ fn display_remote_apps(buckets: &Vec<Bucket>) {
     println!("(add them using 'scoop bucket add <name>')");
     println!("");
 
-    for bucket in buckets {
-        if bucket.apps.len() > 0 {
-            println!("'{}' bucket: ", bucket.name);
-            for app in &bucket.apps {
-                println!("    {}", app.name);
-            }
-            println!("");
-        }
-    }
+    display_apps(buckets);
 }
 
 fn search_local_buckets(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
