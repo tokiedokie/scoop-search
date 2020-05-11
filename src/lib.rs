@@ -3,8 +3,7 @@ use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 struct Bucket {
     name: String,
     apps: Vec<App>,
@@ -16,8 +15,7 @@ impl Bucket {
     }
 }
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 struct App {
     name: String,
     version: String,
@@ -37,8 +35,7 @@ impl App {
     }
 }
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Scoop {
     dir: PathBuf,
     buckets_dir: PathBuf,
@@ -96,8 +93,17 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
     //let buckets = search_local_buckets(scoop, query)?;
 
     let buckets = get_buckets(scoop).unwrap();
-    let filtered_buckets = search_apps(&buckets, query).unwrap();
+    let filtered_buckets = search_apps(&buckets, query);
 
+    match filtered_buckets {
+        Some(buckets) => display_apps(&buckets),
+        None => match search_remote_buckets(&scoop, &buckets, query) {
+            Some(remote_buckets) => display_remote_apps(&remote_buckets),
+            None => println!("No matches Found"),
+        },
+    }
+
+    /*
     if buckets
         .iter()
         .find(|bucket| bucket.apps.len() > 0)
@@ -114,23 +120,22 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
     } else {
         println!("No matches found.");
     }
+    */
 
     Ok(())
 }
 
 fn display_apps(buckets: &Vec<Bucket>) {
     for bucket in buckets {
-        if bucket.apps.len() > 0 {
-            println!("'{}' bucket: ", bucket.name,);
-            for app in &bucket.apps {
-                if app.version != "" {
-                    println!("    {} ({})", app.name, app.version);
-                } else {
-                    println!("    {}", app.name);
-                }
+        println!("'{}' bucket: ", bucket.name,);
+        for app in &bucket.apps {
+            if app.version != "" {
+                println!("    {} ({})", app.name, app.version);
+            } else {
+                println!("    {}", app.name);
             }
-            println!("");
         }
+        println!("");
     }
 }
 
@@ -170,20 +175,19 @@ fn get_buckets(scoop: &Scoop) -> Result<Vec<Bucket>, Box<dyn Error>> {
 fn search_apps(buckets: &Vec<Bucket>, query: &str) -> Option<Vec<Bucket>> {
     let mut result: Vec<Bucket> = Vec::new();
     let mut none_flag = true;
-    
+
     for bucket in buckets {
-        let filtered_apps: Vec<App> = bucket.apps
+        let filtered_apps: Vec<App> = bucket
+            .apps
             .iter()
             .filter(|app| app.name.contains(query))
-            .map(|app| {
-                App {
-                    name: app.name.clone(),
-                    version: app.version.clone(),
-                    bin: Vec::new(),
-                }
+            .map(|app| App {
+                name: app.name.clone(),
+                version: app.version.clone(),
+                bin: Vec::new(),
             })
             .collect();
-        
+
         if filtered_apps.len() > 0 {
             none_flag = false
         }
@@ -255,7 +259,11 @@ fn get_version_bin(path: &Path) -> Result<(String, Vec<String>), Box<dyn Error>>
                 Some(bins) => bins
                     .clone()
                     .iter()
-                    .map(|bin| bin.as_str().unwrap().to_string())
+                    //.map(|bin| bin.as_str().unwrap().to_string())
+                    .map(|bin| match bin.as_str() {
+                        Some(str) => str.to_string(),
+                        None => String::new(),
+                    })
                     .collect(),
                 None => Vec::new(),
             },
@@ -266,19 +274,17 @@ fn get_version_bin(path: &Path) -> Result<(String, Vec<String>), Box<dyn Error>>
     Ok((version, bin))
 }
 
-fn search_remote_buckets(
-    scoop: &Scoop,
-    buckets: &Vec<Bucket>,
-    query: &str,
-) -> Result<Vec<Bucket>, Box<dyn Error>> {
+fn search_remote_buckets(scoop: &Scoop, buckets: &Vec<Bucket>, query: &str) -> Option<Vec<Bucket>> {
     let mut buckets_file = PathBuf::from(scoop.dir.as_os_str());
 
     buckets_file.push("apps\\scoop\\current\\buckets.json");
     let buckets_json: serde_json::Value =
-        serde_json::from_str(&fs::read_to_string(&buckets_file)?)?;
-    let buckets_map = buckets_json.as_object().unwrap();
+        serde_json::from_str(&fs::read_to_string(&buckets_file).unwrap()).unwrap();
+    let buckets_map = buckets_json.as_object()?;
 
     let mut result: Vec<Bucket> = Vec::new();
+
+    let mut none_flag = true;
 
     for bucket_tuple in buckets_map {
         let bucket = if buckets
@@ -286,17 +292,15 @@ fn search_remote_buckets(
             .find(|bucket| &bucket.name == bucket_tuple.0)
             .is_none()
         {
-            let mut bucket = PathBuf::from(bucket_tuple.1.as_str().unwrap().to_string());
+            let mut bucket = PathBuf::from(bucket_tuple.1.as_str()?.to_string());
             let repository = bucket
-                .file_stem()
-                .unwrap()
+                .file_stem()?
                 .to_os_string()
                 .to_string_lossy()
                 .to_string();
             bucket.pop();
             let user = bucket
-                .file_stem()
-                .unwrap()
+                .file_stem()?
                 .to_os_string()
                 .to_string_lossy()
                 .to_string();
@@ -305,7 +309,11 @@ fn search_remote_buckets(
                 user, repository
             );
 
-            let apps = search_remote_bucket(&api_link, query)?;
+            let apps = search_remote_bucket(&api_link, query).unwrap();
+
+            if apps.len() > 0 {
+                none_flag = false;
+            }
 
             Bucket::new(bucket_tuple.0.to_string(), apps)
         } else {
@@ -315,7 +323,11 @@ fn search_remote_buckets(
         result.push(bucket);
     }
 
-    Ok(result)
+    if none_flag {
+        return None;
+    }
+
+    Some(result)
 }
 
 fn search_remote_bucket(url: &str, query: &str) -> Result<Vec<App>, Box<dyn Error>> {
@@ -351,32 +363,24 @@ mod test {
 
     #[test]
     fn test_search_apps() {
-        let buckets = vec!(
-            Bucket {
-                name: String::from("test_bucket"),
-                apps: vec!(
-                    App {
-                        name: String::from("test_app"),
-                        version: String::from("test_version"),
-                        bin: vec!(String::from("test_bin")),
-                    },
-                )
-            }
-        );
+        let buckets = vec![Bucket {
+            name: String::from("test_bucket"),
+            apps: vec![App {
+                name: String::from("test_app"),
+                version: String::from("test_version"),
+                bin: vec![String::from("test_bin")],
+            }],
+        }];
         let query = String::from("test");
 
-        let expect = vec!(
-            Bucket {
-                name: String::from("test_bucket"),
-                apps: vec!(
-                    App {
-                        name: String::from("test_app"),
-                        version: String::from("test_version"),
-                        bin: Vec::new(),
-                    },
-                )
-            }
-        );
+        let expect = vec![Bucket {
+            name: String::from("test_bucket"),
+            apps: vec![App {
+                name: String::from("test_app"),
+                version: String::from("test_version"),
+                bin: Vec::new(),
+            }],
+        }];
 
         let actual = search_apps(&buckets, &query).unwrap();
 
