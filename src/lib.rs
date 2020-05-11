@@ -133,6 +133,40 @@ fn display_remote_apps(buckets: &Vec<Bucket>) {
     display_apps(buckets);
 }
 
+fn get_buckets(scoop: &Scoop) -> Result<Vec<Bucket>, Box<dyn Error>> {
+    let buckets = fs::read_dir(&scoop.buckets_dir)?;
+    let mut result = Vec::new();
+
+    for bucket in buckets {
+        let mut bucket = bucket?.path();
+        let bucket_name = &bucket.file_name().unwrap().to_string_lossy().to_string();
+        bucket.push("bucket");
+
+        let app_files = fs::read_dir(&bucket)?;
+
+        let app_paths: Vec<PathBuf> = app_files.map(|app| app.unwrap().path()).collect();
+
+        let mut apps = Vec::new();
+
+        for app_path in app_paths {
+            apps.push(App::new(app_path));
+        }
+
+        result.push(Bucket::new(bucket_name.to_string(), apps));
+    }
+
+    Ok(result)
+}
+
+fn search_apps(buckets: &Vec<Bucket>, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
+    for bucket in buckets {
+        let filtered_apps: Vec<apps> = bucket.apps
+            .iter()
+            .filter(|app| app.name.contains(query))
+            .map(|app| app.bin == String::new());
+    }
+}
+
 fn search_local_buckets(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
     let buckets = fs::read_dir(&scoop.buckets_dir)?;
     let mut result = Vec::new();
@@ -181,16 +215,16 @@ fn get_version_bin(path: &Path) -> Result<(String, Vec<String>), Box<dyn Error>>
     let version: String = manufest_json["version"].as_str().unwrap().to_string();
 
     let bin: Vec<String> = match manufest_json.get("bin") {
-        Some(x) => {
-            match x.as_str() {
-                Some(bin) => vec!(bin.to_string()),
-                None => {
-                    match x.as_array() {
-                        Some(bins) => bins.clone().iter().map(|bin| bin.as_str().unwrap().to_string()).collect(),
-                        None => Vec::new(),
-                    }
-                },
-            }
+        Some(x) => match x.as_str() {
+            Some(bin) => vec![bin.to_string()],
+            None => match x.as_array() {
+                Some(bins) => bins
+                    .clone()
+                    .iter()
+                    .map(|bin| bin.as_str().unwrap().to_string())
+                    .collect(),
+                None => Vec::new(),
+            },
         },
         None => Vec::new(),
     };
@@ -281,8 +315,25 @@ fn search_remote_bucket(url: &str, query: &str) -> Result<Vec<App>, Box<dyn Erro
 mod test {
     use super::*;
 
-    /*
     #[test]
+    fn search_apps() {
+        let buckets = vec!(
+            Bucket {
+                name: String::from("test_bucket"),
+                apps: vec!(
+                    App {
+                        name: String::from("test_app"),
+                        version: String::from("test_version"),
+                        bin: vec!(String::from("test_bin")),
+                    },
+                )
+            }
+        );
+        let query = String::from("test");
+
+        let result = search_apps(buckets, query).unwrap();
+    }
+    /*
     fn remote_new() {
         let reference = App{
             name: "rust".to_string(),
