@@ -94,14 +94,17 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
         .is_some()
     {
         display_apps(&buckets);
+    } else if search_remote_buckets(scoop, &buckets, query)?
+        .iter()
+        .find(|bucket| bucket.apps.len() > 0)
+        .is_some()
+    {
+        let remote_buckets = search_remote_buckets(scoop, &buckets, query)?;
+        display_remote_apps(&remote_buckets);
     } else {
-        let buckets = search_remote_buckets(scoop, &buckets, query).unwrap();
-        if buckets.len() > 0 {
-            display_apps(&buckets);
-        } else {
-            println!("No matches found.");
-        }
+        println!("No matches found.");
     }
+
     Ok(())
 }
 
@@ -111,6 +114,22 @@ fn display_apps(buckets: &Vec<Bucket>) {
             println!("'{}' bucket: ", bucket.name,);
             for app in &bucket.apps {
                 println!("    {} ({})", app.name, app.version);
+            }
+            println!("");
+        }
+    }
+}
+
+fn display_remote_apps(buckets: &Vec<Bucket>) {
+    println!("Results from other known buckets...");
+    println!("(add them using 'scoop bucket add <name>')");
+    println!("");
+
+    for bucket in buckets {
+        if bucket.apps.len() > 0 {
+            println!("'{}' bucket: ", bucket.name);
+            for app in &bucket.apps {
+                println!("    {}", app.name);
             }
             println!("");
         }
