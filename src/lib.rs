@@ -195,24 +195,6 @@ fn search_apps(buckets: &Vec<Bucket>, query: &str) -> Option<Vec<Bucket>> {
     let mut none_flag = true;
 
     for bucket in buckets {
-        /*
-        let filtered_apps: Vec<App> = bucket
-            .apps
-            .iter()
-            .filter(|app| {
-                app.name.contains(query) || app
-            })
-            .map(|app| App {
-                name: app.name.clone(),
-                version: app.version.clone(),
-                bin: Vec::new(),
-            })
-            .collect();
-
-        if filtered_apps.len() > 0 {
-            none_flag = false
-        }
-        */
         let mut filtered_apps: Vec<App> = Vec::new();
 
         for app in &bucket.apps {
@@ -238,15 +220,6 @@ fn search_apps(buckets: &Vec<Bucket>, query: &str) -> Option<Vec<Bucket>> {
                     }
                 }
             }
-            /*
-            } else if app.bin.iter().find(|bin| bin.contains(query)).is_some() {
-                filtered_apps.push(App {
-                    name: app.name.clone(),
-                    version: app.version.clone(),
-                    bin: app.bin.clone(),
-                });
-            }
-            */
         }
 
         if filtered_apps.len() > 0 {
