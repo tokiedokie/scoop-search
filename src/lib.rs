@@ -186,8 +186,11 @@ fn search_remote_buckets(
         serde_json::from_str(&fs::read_to_string(&buckets_file)?)?;
     let buckets_map = buckets_json.as_object().unwrap();
     // buckets_map.iter().filter(|bucket| bucket.)
+
+    let mut result: Vec<Bucket> = Vec::new();
+
     for bucket_tuple in buckets_map {
-        if buckets
+        let bucket = if buckets
             .iter()
             .find(|bucket| &bucket.name == bucket_tuple.0)
             .is_none()
@@ -210,10 +213,51 @@ fn search_remote_buckets(
                 "https://api.github.com/repos/{}/{}/git/trees/HEAD?recursive=1",
                 user, repository
             );
-            println!("{}", api_link);
-        }
+
+            let apps = search_remote_bucket(&api_link, query)?;
+
+            Bucket {
+                name: bucket_tuple.0.to_string(),
+                apps,
+            }
+        } else {
+            Bucket {
+                name: bucket_tuple.0.to_string(),
+                apps: Vec::new(),
+            }
+        };
+
+        result.push(bucket);
     }
-    Ok(Vec::new())
+
+    Ok(result)
+}
+
+fn search_remote_bucket(url: &str, query: &str) -> Result<Vec<App>, Box<dyn Error>> {
+    let response_json = ureq::get(url).call().into_json()?;
+    //println!("{:?}", response_json["tree"][1]["path"]);
+
+    let tree = response_json.get("tree").expect("Can't get repository");
+
+    let filtered: Vec<String> = tree
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|obj| obj["path"].as_str().unwrap().to_string())
+        .filter(|path| path.ends_with(".json"))
+        .map(|path| path.trim_end_matches(".json").to_string())
+        .filter(|path| path.contains(query))
+        .collect();
+
+    let apps = filtered
+        .iter()
+        .map(|name| App {
+            name: name.to_string(),
+            version: String::new(),
+        })
+        .collect::<Vec<App>>();
+
+    Ok(apps)
 }
 
 #[cfg(test)]
