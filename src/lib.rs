@@ -494,4 +494,8 @@ mod test {
 
         assert_eq!(expect, actual);
     }
+
+    #[test]
+    fn test_search_remote_apps() {}
+
 }
