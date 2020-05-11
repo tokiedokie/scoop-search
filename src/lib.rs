@@ -14,8 +14,8 @@ impl Bucket {
         Bucket { name, apps }
     }
 
-    fn get_buckets_path(scoop: &Scoop) -> Vec(PathBuf) {
-        
+    fn get_bucket_paths(scoop: &Scoop) -> Vec(PathBuf) {
+
     }
 }
 
