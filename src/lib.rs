@@ -14,8 +14,10 @@ impl Bucket {
         Bucket { name, apps }
     }
 
-    fn get_bucket_paths(scoop: &Scoop) -> Vec(PathBuf) {
-
+    fn get_bucket_paths(scoop: &Scoop) -> Vec<PathBuf> {
+        let bucket_dirs = fs::read_dir(&scoop.buckets_dir).unwrap();
+        
+        bucket_dirs.map(|path| path.unwrap().path()).collect()
     }
 }
 
@@ -168,9 +170,11 @@ fn display_remote_apps(buckets: &Vec<Bucket>) {
     display_apps(buckets);
 }
 
+/*
 fn search_local_buckets(scoop: &Scoop, query: &str) -> Option<Vec<Bucket>> {
 
 }
+*/
 
 fn get_buckets(scoop: &Scoop) -> Result<Vec<Bucket>, Box<dyn Error>> {
     let buckets = fs::read_dir(&scoop.buckets_dir)?;
