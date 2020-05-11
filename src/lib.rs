@@ -16,7 +16,7 @@ impl Bucket {
 
     fn get_bucket_paths(scoop: &Scoop) -> Vec<PathBuf> {
         let bucket_dirs = fs::read_dir(&scoop.buckets_dir).unwrap();
-        
+
         bucket_dirs.map(|path| path.unwrap().path()).collect()
     }
 }
@@ -65,6 +65,13 @@ impl App {
         };
 
         Ok((version, bin))
+    }
+
+    fn get_app_paths(path: PathBuf) -> Vec<PathBuf> {
+        fs::read_dir(path)
+            .unwrap()
+            .map(|path| path.unwrap().path())
+            .collect()
     }
 }
 
@@ -124,7 +131,6 @@ pub fn get_query(mut args: env::Args) -> Result<String, &'static str> {
 }
 
 pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
-
     let buckets = get_buckets(scoop).unwrap();
     let filtered_buckets = search_apps(&buckets, query);
 
@@ -181,12 +187,14 @@ fn get_buckets(scoop: &Scoop) -> Result<Vec<Bucket>, Box<dyn Error>> {
     let mut result = Vec::new();
 
     for mut bucket_path in bucket_paths {
-        let bucket_name = &bucket_path.file_name().unwrap().to_string_lossy().to_string();
+        let bucket_name = &bucket_path
+            .file_name()
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
         bucket_path.push("bucket");
 
-        let app_files = fs::read_dir(&bucket_path)?;
-
-        let app_paths: Vec<PathBuf> = app_files.map(|app| app.unwrap().path()).collect();
+        let app_paths = App::get_app_paths(bucket_path);
 
         let mut apps = Vec::new();
 
