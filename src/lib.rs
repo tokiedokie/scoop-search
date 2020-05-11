@@ -103,25 +103,6 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
         },
     }
 
-    /*
-    if buckets
-        .iter()
-        .find(|bucket| bucket.apps.len() > 0)
-        .is_some()
-    {
-        display_apps(&buckets);
-    } else if search_remote_buckets(scoop, &buckets, query)?
-        .iter()
-        .find(|bucket| bucket.apps.len() > 0)
-        .is_some()
-    {
-        let remote_buckets = search_remote_buckets(scoop, &buckets, query)?;
-        display_remote_apps(&remote_buckets);
-    } else {
-        println!("No matches found.");
-    }
-    */
-
     Ok(())
 }
 
@@ -259,7 +240,6 @@ fn get_version_bin(path: &Path) -> Result<(String, Vec<String>), Box<dyn Error>>
                 Some(bins) => bins
                     .clone()
                     .iter()
-                    //.map(|bin| bin.as_str().unwrap().to_string())
                     .map(|bin| match bin.as_str() {
                         Some(str) => str.to_string(),
                         None => String::new(),
@@ -386,15 +366,4 @@ mod test {
 
         assert_eq!(expect, actual);
     }
-    /*
-    fn remote_new() {
-        let reference = App{
-            name: "rust".to_string(),
-            version: "1.43.1".to_string(),
-        };
-        let target = App::remote_new("rust", "https://api.github.com/repos/ScoopInstaller/Main/git/blobs/1fecc0ecd5aa2af76261ca0fc258b535a0843f9f");
-        assert_eq!(reference.name, target.name);
-        assert_eq!(reference.version, target.version);
-    }
-    */
 }
