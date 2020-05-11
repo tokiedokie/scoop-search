@@ -93,7 +93,10 @@ fn has_root_path() -> Result<bool, Box<dyn Error>> {
 }
 
 pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
-    let buckets = search_local_buckets(scoop, query)?;
+    //let buckets = search_local_buckets(scoop, query)?;
+
+    let buckets = get_buckets(scoop).unwrap();
+    let filtered_buckets = search_apps(&buckets, query).unwrap();
 
     if buckets
         .iter()
@@ -164,8 +167,9 @@ fn get_buckets(scoop: &Scoop) -> Result<Vec<Bucket>, Box<dyn Error>> {
     Ok(result)
 }
 
-fn search_apps(buckets: &Vec<Bucket>, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
+fn search_apps(buckets: &Vec<Bucket>, query: &str) -> Option<Vec<Bucket>> {
     let mut result: Vec<Bucket> = Vec::new();
+    let mut none_flag = true;
     
     for bucket in buckets {
         let filtered_apps: Vec<App> = bucket.apps
@@ -179,13 +183,22 @@ fn search_apps(buckets: &Vec<Bucket>, query: &str) -> Result<Vec<Bucket>, Box<dy
                 }
             })
             .collect();
+        
+        if filtered_apps.len() > 0 {
+            none_flag = false
+        }
+
         result.push(Bucket {
             name: bucket.name.clone(),
             apps: filtered_apps,
         });
     }
 
-    Ok(result)
+    if none_flag {
+        return None;
+    }
+
+    Some(result)
 }
 
 fn search_local_buckets(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<dyn Error>> {
