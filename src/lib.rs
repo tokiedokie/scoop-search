@@ -28,8 +28,8 @@ impl App {
             .to_os_string()
             .into_string()
             .unwrap();
-        let version = get_latest_version(&path).unwrap();
-        App { name, version }
+        let (version, bin) = get_version_bin(&path).unwrap();
+        App { name, version, bin }
     }
 }
 
@@ -176,12 +176,29 @@ fn search_local_buckets(scoop: &Scoop, query: &str) -> Result<Vec<Bucket>, Box<d
 
 //fn search_query_in(bucket: Bucket, query: &str) -> Result<Bucket, Box<dyn Error>> {}
 
-fn get_latest_version(path: &Path) -> Result<String, Box<dyn Error>> {
+fn get_version_bin(path: &Path) -> Result<(String, Vec<String>), Box<dyn Error>> {
     let manufest = fs::read_to_string(&path)?;
     let manufest_json: serde_json::Value = serde_json::from_str(&manufest)?;
+
     let version: String = manufest_json["version"].as_str().unwrap().to_string();
 
-    Ok(version)
+    let bin: Vec<String> = match manufest_json.get("bin") {
+        Some(x) => {
+            match x.as_str() {
+                Some(bin) => vec!(bin.to_string()),
+                None => {
+                    match x.as_array() {
+                        Some(bins) => bins.clone().iter().map(|bin| bin.as_str().unwrap().to_string()).collect(),
+                        None => Vec::new(),
+                    }
+                },
+            }
+            //.iter().map(|bin| *bin.as_str()?).collect()
+        },
+        None => Vec::new(),
+    };
+
+    Ok((version, bin))
 }
 
 fn search_remote_buckets(
@@ -258,6 +275,7 @@ fn search_remote_bucket(url: &str, query: &str) -> Result<Vec<App>, Box<dyn Erro
         .map(|name| App {
             name: name.to_string(),
             version: String::new(),
+            bin: Vec::new(),
         })
         .collect::<Vec<App>>();
 
