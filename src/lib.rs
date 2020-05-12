@@ -107,7 +107,6 @@ impl Bucket {
 
             let filtered_apps: Vec<App> = app_paths
                 .iter()
-                //.map(|app_path| App::get_name(app_path))
                 .filter(|app_path| App::get_name(app_path).contains(query))
                 .map(|app_path| {
                     let name = App::get_name(app_path);
@@ -224,18 +223,6 @@ impl App {
             .collect()
     }
 
-    /*
-    fn get_app_names(bucket_path: &PathBuf) -> Vec<String> {
-        let mut path: PathBuf = PathBuf::from(bucket_path);
-
-        path.push("bucket");
-        fs::read_dir(path)
-            .unwrap()
-            .map(|path| path.unwrap().path().file_stem().unwrap().to_string_lossy().to_string())
-            .collect()
-    }
-    */
-
     fn search_apps(apps: &Vec<App>, query: &str) -> Vec<App> {
         let mut result: Vec<App> = Vec::new();
 
@@ -302,7 +289,7 @@ pub struct Scoop {
 impl Scoop {
     pub fn new() -> Scoop {
         let dir = Scoop::get_scoop_dir().unwrap();
-        let mut buckets_dir = PathBuf::from(dir.to_str().unwrap()); //PathBuf::new();
+        let mut buckets_dir = PathBuf::from(dir.to_str().unwrap());
         buckets_dir.push("buckets");
         Scoop { dir, buckets_dir }
     }
