@@ -1,7 +1,7 @@
 use std::env;
 use std::error::Error;
 use std::fs;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 
 #[derive(Debug, PartialEq)]
 pub struct Scoop {
