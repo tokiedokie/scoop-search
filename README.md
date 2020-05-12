@@ -8,8 +8,14 @@ scoop install https://raw.githubusercontent.com/tokiedokie/scoop-search/master/s
 
 ## Usege
 
-same as `scoop search`
-
 ```sh
 scoop-search <query>
 ```
+this command search apps very quick.
+this search app manufect file names and remote buckets apps, if there is no app which contains wuery, then search binary file.
+
+
+```sh
+scoop-search --bin <query>
+```
+same as `scoop search`
