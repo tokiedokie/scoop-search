@@ -409,8 +409,12 @@ fn search_exclude_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> 
     Ok(())
 }
 
-pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
-    search_exclude_bin(scoop, query)
+pub fn run(scoop: &Scoop, args: &Args) -> Result<(), Box<dyn Error>> {
+    if args.exclude_bin == true {
+        search_include_bin(scoop, &args.query)
+    } else {
+        search_exclude_bin(scoop, &args.query)
+    }
 }
 
 fn display_apps(bucket_name: &str, apps: &Vec<App>) {
