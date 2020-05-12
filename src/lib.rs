@@ -69,6 +69,62 @@ impl Bucket {
         }
         result
     }
+
+    fn search_local_buckets(bucket_paths: &Vec<PathBuf>, query: &str) -> Option<()> {
+        let mut app_in_local = false;
+
+        for bucket_path in bucket_paths {
+            let bucket_name = Bucket::get_name(&bucket_path);
+            let app_paths = App::get_app_paths(&bucket_path);
+
+            let apps: Vec<App> = app_paths.iter().map(|path| App::new(path)).collect();
+
+            let filtered_apps = search_apps(&apps, query);
+
+            if filtered_apps.len() > 0 {
+                app_in_local = true;
+            }
+
+            display_apps(&bucket_name, &filtered_apps);
+        }
+
+        if !app_in_local {
+            return None
+        }
+
+        Some(())
+    }
+
+    fn search_remote_buckets(scoop: &Scoop, local_bucket_names: &Vec<String>, query: &str) -> Option<()> {
+        let mut app_in_remote = false;
+        let mut display_result_from = false;
+
+        let remote_names_urls = Bucket::get_remote_names_urls(&scoop, &local_bucket_names);
+        for remote_name_url in remote_names_urls {
+            let remote_name = remote_name_url.0;
+            let remote_url = remote_name_url.1;
+
+            let remote_apps = search_remote_apps(&remote_url, query);
+
+            if remote_apps.len() > 0 {
+                app_in_remote = true;
+                if !display_result_from {
+                    println!("Results from other known buckets...");
+                    println!("(add them using 'scoop bucket add <name>')");
+                    println!("");
+                    display_result_from = true;
+                }
+            }
+
+            display_apps(&remote_name, &remote_apps);
+        }
+
+        if !app_in_remote {
+            return None
+        }
+
+        Some(())
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -201,44 +257,18 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
         },
     }
     */
-    let mut app_in_local = false;
 
     let bucket_paths = Bucket::get_bucket_paths(scoop);
-    for bucket_path in &bucket_paths {
-        let bucket_name = Bucket::get_name(&bucket_path);
-        let app_paths = App::get_app_paths(&bucket_path);
 
-        let apps: Vec<App> = app_paths.iter().map(|path| App::new(path)).collect();
-
-        let filtered_apps = search_apps(&apps, query);
-
-        if filtered_apps.len() > 0 {
-            app_in_local = true;
-        }
-
-        display_apps(&bucket_name, &filtered_apps);
-    }
-
-    if !app_in_local {
-        let local_bucket_names = &bucket_paths.iter().map(|path| Bucket::get_name(path)).collect();
-        let remote_names_urls = Bucket::get_remote_names_urls(&scoop, &local_bucket_names);
-        for remote_name_url in remote_names_urls {
-            let remote_name = remote_name_url.0;
-            let remote_url = remote_name_url.1;
-
-            let remote_apps = search_remote_apps(&remote_url, query);
-
-            
-
-            display_remote_apps(&remote_name, &remote_apps);
-        }
-        /*
-        let buckets = &bucket_paths.iter().map(|path| Bucket { name: Bucket::get_name(&path), apps: Vec::new() }).collect();
-        match search_remote_buckets(&scoop, &buckets, query) {
-            Some(remote_buckets) => display_remote_apps(&remote_buckets),
-            None => println!("No matches Found"),
-        }
-        */
+    match Bucket::search_local_buckets(&bucket_paths, query) {
+        Some(_) => {},
+        None => {
+            let local_bucket_names = &bucket_paths.iter().map(|path| Bucket::get_name(path)).collect();
+            match Bucket::search_remote_buckets(scoop, local_bucket_names, query) {
+                Some(_) => {},
+                None => println!("No matches found."),
+            }
+        },
     }
 
     Ok(())
