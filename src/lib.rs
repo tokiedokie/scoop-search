@@ -123,11 +123,15 @@ impl Bucket {
             buckets.push(Bucket::new(bucket_name, filtered_apps))
         }
 
-        if buckets.len() == 0 {
-            return None;
+        if buckets
+            .iter()
+            .find(|bucket| bucket.apps.len() != 0)
+            .is_some()
+        {
+            return Some(buckets)
         }
-
-        Some(buckets)
+        
+        None
     }
 
     fn search_remote_buckets(
@@ -147,11 +151,15 @@ impl Bucket {
             buckets.push(Bucket::new(remote_name, remote_apps))
         }
 
-        if buckets.len() == 0 {
-            return None;
+        if buckets
+            .iter()
+            .find(|bucket| bucket.apps.len() != 0)
+            .is_some()
+        {
+            return Some(buckets)
         }
-
-        Some(buckets)
+        
+        None
     }
 }
 
@@ -386,7 +394,7 @@ fn search_include_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> 
     Ok(())
 }
 
-fn search_except_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
+fn search_exclude_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
     let bucket_paths = Bucket::get_bucket_paths(scoop);
 
     match Bucket::search_except_bin(&bucket_paths, query) {
@@ -403,7 +411,10 @@ fn search_except_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
                     println!("");
                     display_buckets(&buckets);
                 }
-                None => println!("No matches found."),
+                None => match Bucket::search_local_buckets(&bucket_paths, query) {
+                    Some(_) => {}
+                    None => println!("No matches found."),
+                },
             }
         }
     }
@@ -412,7 +423,7 @@ fn search_except_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
 }
 
 pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
-    search_include_bin(scoop, query)
+    search_exclude_bin(scoop, query)
 }
 
 fn display_apps(bucket_name: &str, apps: &Vec<App>) {
