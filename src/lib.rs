@@ -340,15 +340,25 @@ pub fn get_query(mut args: env::Args) -> Result<String, &'static str> {
     Ok(query.to_lowercase())
 }
 
-pub fn parse_args(mut args: env::Args) -> Result<Args, &'static str> {
-    args.next();
+pub fn parse_args(args: env::Args) -> Result<Args, &'static str> {
+    let args: Vec<String> = args.collect();
+    let query: String;
+    let mut exclude_bin = true;
 
-    let query = match args.next() {
-        Some(arg) => arg,
-        None => return Err("Didn't get a query"),
-    };
-
-    let exclude_bin = args.find(|arg| arg == "-b").is_some();
+    // args.next() always returns Some(), so thise unwrap() is OK
+    match &args.len() {
+        1 => return Err("Didn't get query"),
+        2 => query = args[1].clone(),
+        3 => {
+            if args[1] == "--bin" {
+                exclude_bin = false;
+                query = args[2].clone();
+            } else {
+                return Err("option is not valid");
+            }
+        }
+        _ => return Err("args number incorrect."),
+    }
 
     Ok(Args {
         query: query.to_lowercase(),
@@ -411,9 +421,9 @@ fn search_exclude_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> 
 
 pub fn run(scoop: &Scoop, args: &Args) -> Result<(), Box<dyn Error>> {
     if args.exclude_bin == true {
-        search_include_bin(scoop, &args.query)
-    } else {
         search_exclude_bin(scoop, &args.query)
+    } else {
+        search_include_bin(scoop, &args.query)
     }
 }
 
