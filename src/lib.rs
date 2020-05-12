@@ -188,6 +188,62 @@ impl App {
             .map(|path| path.unwrap().path())
             .collect()
     }
+
+    fn search_apps(apps: &Vec<App>, query: &str) -> Vec<App> {
+        let mut result: Vec<App> = Vec::new();
+
+        for app in apps {
+            if app.name.contains(query) {
+                result.push(App {
+                    name: app.name.clone(),
+                    version: app.version.clone(),
+                    bin: Vec::new(),
+                });
+            } else {
+                for bin in &app.bin {
+                    let bin = Path::new(&bin)
+                        .file_name()
+                        .unwrap_or(std::ffi::OsStr::new(""))
+                        .to_string_lossy()
+                        .to_string();
+                    if bin.contains(query) {
+                        result.push(App {
+                            name: app.name.clone(),
+                            version: app.version.clone(),
+                            bin: vec![bin],
+                        })
+                    }
+                }
+            }
+        }
+
+        result
+    }
+
+    fn search_remote_apps(remote_url: &str, query: &str) -> Vec<App> {
+        let response_json = ureq::get(remote_url).call().into_json().unwrap();
+
+        let tree = response_json
+            .get("tree")
+            .expect("Can't get remote repository");
+
+        let filtered: Vec<App> = tree
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|obj| obj["path"].as_str().unwrap().to_string())
+            .filter(|path| path.ends_with(".json"))
+            .map(|path| path.trim_end_matches(".json").to_string())
+            .filter(|path| path.contains(query))
+            .map(|name| App {
+                name,
+                version: String::new(),
+                bin: Vec::new(),
+            })
+            .collect();
+
+        filtered
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -290,62 +346,6 @@ fn display_buckets(buckets: &Vec<Bucket>) {
     for bucket in buckets {
         display_apps(&bucket.name, &bucket.apps);
     }
-}
-
-fn search_apps(apps: &Vec<App>, query: &str) -> Vec<App> {
-    let mut result: Vec<App> = Vec::new();
-
-    for app in apps {
-        if app.name.contains(query) {
-            result.push(App {
-                name: app.name.clone(),
-                version: app.version.clone(),
-                bin: Vec::new(),
-            });
-        } else {
-            for bin in &app.bin {
-                let bin = Path::new(&bin)
-                    .file_name()
-                    .unwrap_or(std::ffi::OsStr::new(""))
-                    .to_string_lossy()
-                    .to_string();
-                if bin.contains(query) {
-                    result.push(App {
-                        name: app.name.clone(),
-                        version: app.version.clone(),
-                        bin: vec![bin],
-                    })
-                }
-            }
-        }
-    }
-
-    result
-}
-
-fn search_remote_apps(remote_url: &str, query: &str) -> Vec<App> {
-    let response_json = ureq::get(remote_url).call().into_json().unwrap();
-
-    let tree = response_json
-        .get("tree")
-        .expect("Can't get remote repository");
-
-    let filtered: Vec<App> = tree
-        .as_array()
-        .unwrap()
-        .iter()
-        .map(|obj| obj["path"].as_str().unwrap().to_string())
-        .filter(|path| path.ends_with(".json"))
-        .map(|path| path.trim_end_matches(".json").to_string())
-        .filter(|path| path.contains(query))
-        .map(|name| App {
-            name,
-            version: String::new(),
-            bin: Vec::new(),
-        })
-        .collect();
-
-    filtered
 }
 
 #[cfg(test)]
