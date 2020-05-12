@@ -82,7 +82,7 @@ impl Bucket {
 
             let apps: Vec<App> = app_paths.iter().map(|path| App::new(path)).collect();
 
-            let filtered_apps = search_apps(&apps, query);
+            let filtered_apps = App::search_apps(&apps, query);
 
             if filtered_apps.len() > 0 {
                 app_in_local = true;
@@ -110,7 +110,7 @@ impl Bucket {
             let remote_name = remote_name_url.0;
             let remote_url = remote_name_url.1;
 
-            let remote_apps = search_remote_apps(&remote_url, query);
+            let remote_apps = App::search_remote_apps(&remote_url, query);
 
             buckets.push(Bucket::new(remote_name, remote_apps))
         }
