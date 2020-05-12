@@ -30,16 +30,19 @@ impl Bucket {
         bucket_dirs.map(|path| path.unwrap().path()).collect()
     }
 
-    fn get_remote_names_urls(scoop: &Scoop, local_bucket_names: &Vec<String>) -> Vec<(String, String)> {
+    fn get_remote_names_urls(
+        scoop: &Scoop,
+        local_bucket_names: &Vec<String>,
+    ) -> Vec<(String, String)> {
         let mut buckets_file = PathBuf::from(scoop.dir.as_os_str());
         buckets_file.push("apps\\scoop\\current\\buckets.json");
-        
+
         let buckets_json: serde_json::Value =
             serde_json::from_str(&fs::read_to_string(&buckets_file).unwrap()).unwrap();
         let buckets_map = buckets_json.as_object().unwrap();
-     
+
         let mut result: Vec<(String, String)> = Vec::new();
-        
+
         for bucket_tuple in buckets_map {
             if local_bucket_names
                 .iter()
@@ -89,15 +92,21 @@ impl Bucket {
         }
 
         if !app_in_local {
-            return None
+            return None;
         }
 
         Some(())
     }
 
-    fn search_remote_buckets(scoop: &Scoop, local_bucket_names: &Vec<String>, query: &str) -> Option<()> {
+    fn search_remote_buckets(
+        scoop: &Scoop,
+        local_bucket_names: &Vec<String>,
+        query: &str,
+    ) -> Option<()> {
         let mut app_in_remote = false;
         let mut display_result_from = false;
+
+        let mut buckets: Vec<Bucket> = Vec::new();
 
         let remote_names_urls = Bucket::get_remote_names_urls(&scoop, &local_bucket_names);
         for remote_name_url in remote_names_urls {
@@ -107,6 +116,7 @@ impl Bucket {
             let remote_apps = search_remote_apps(&remote_url, query);
 
             if remote_apps.len() > 0 {
+                /*
                 app_in_remote = true;
                 if !display_result_from {
                     println!("Results from other known buckets...");
@@ -114,14 +124,23 @@ impl Bucket {
                     println!("");
                     display_result_from = true;
                 }
+                */
             }
 
-            display_apps(&remote_name, &remote_apps);
+            buckets.push(Bucket {
+                name: remote_name,
+                apps: remote_apps,
+            })
         }
-
-        if !app_in_remote {
-            return None
+        
+        if buckets.len() == 0 {
+            return None;
         }
+        
+        println!("Results from other known buckets...");
+        println!("(add them using 'scoop bucket add <name>')");
+        println!("");
+        display_buckets(&buckets);
 
         Some(())
     }
@@ -180,7 +199,7 @@ impl App {
 
     fn get_app_paths(bucket_path: &PathBuf) -> Vec<PathBuf> {
         let mut path: PathBuf = PathBuf::from(bucket_path);
-        
+
         path.push("bucket");
         fs::read_dir(path)
             .unwrap()
@@ -261,14 +280,17 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
     let bucket_paths = Bucket::get_bucket_paths(scoop);
 
     match Bucket::search_local_buckets(&bucket_paths, query) {
-        Some(_) => {},
+        Some(_) => {}
         None => {
-            let local_bucket_names = &bucket_paths.iter().map(|path| Bucket::get_name(path)).collect();
+            let local_bucket_names = &bucket_paths
+                .iter()
+                .map(|path| Bucket::get_name(path))
+                .collect();
             match Bucket::search_remote_buckets(scoop, local_bucket_names, query) {
-                Some(_) => {},
+                Some(_) => {}
                 None => println!("No matches found."),
             }
-        },
+        }
     }
 
     Ok(())
@@ -295,13 +317,10 @@ fn display_apps(bucket_name: &str, apps: &Vec<App>) {
     }
 }
 
-
-fn display_remote_apps(bucket_name: &str, apps: &Vec<App>) {
-    println!("Results from other known buckets...");
-    println!("(add them using 'scoop bucket add <name>')");
-    println!("");
-
-    display_apps(&bucket_name, &apps);
+fn display_buckets(buckets: &Vec<Bucket>) {
+    for bucket in buckets {
+        display_apps(&bucket.name, &bucket.apps);
+    }
 }
 
 /*
@@ -318,9 +337,9 @@ fn search_apps(apps: &Vec<App>, query: &str) -> Vec<App> {
     for app in apps {
         if app.name.contains(query) {
             result.push(App {
-                    name: app.name.clone(),
-                    version: app.version.clone(),
-                    bin: Vec::new(),
+                name: app.name.clone(),
+                version: app.version.clone(),
+                bin: Vec::new(),
             });
         } else {
             for bin in &app.bin {
@@ -346,8 +365,10 @@ fn search_apps(apps: &Vec<App>, query: &str) -> Vec<App> {
 fn search_remote_apps(remote_url: &str, query: &str) -> Vec<App> {
     let response_json = ureq::get(remote_url).call().into_json().unwrap();
 
-    let tree = response_json.get("tree").expect("Can't get remote repository");
-    
+    let tree = response_json
+        .get("tree")
+        .expect("Can't get remote repository");
+
     let filtered: Vec<App> = tree
         .as_array()
         .unwrap()
@@ -356,9 +377,12 @@ fn search_remote_apps(remote_url: &str, query: &str) -> Vec<App> {
         .filter(|path| path.ends_with(".json"))
         .map(|path| path.trim_end_matches(".json").to_string())
         .filter(|path| path.contains(query))
-        .map(|name| App { name, version: String::new(), bin: Vec::new() })
+        .map(|name| App {
+            name,
+            version: String::new(),
+            bin: Vec::new(),
+        })
         .collect();
-
 
     filtered
 }
@@ -550,17 +574,17 @@ mod test {
 
     #[test]
     fn test_search_remote_apps() {
-        let remote_url = "https://api.github.com/repos/ScoopInstaller/Main/git/trees/HEAD?recursive=1";
+        let remote_url =
+            "https://api.github.com/repos/ScoopInstaller/Main/git/trees/HEAD?recursive=1";
         let query = "7zip";
         let acutual = search_remote_apps(remote_url, query);
 
-        let expect = vec!(App {
+        let expect = vec![App {
             name: String::from("bucket/7zip"),
             version: String::new(),
             bin: Vec::new(),
-        });
+        }];
 
         assert_eq!(expect, acutual);
     }
-
 }
