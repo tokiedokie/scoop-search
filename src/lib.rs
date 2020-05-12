@@ -98,6 +98,39 @@ impl Bucket {
         Some(())
     }
 
+    fn search_except_bin(bucket_paths: &Vec<PathBuf>, query: &str) -> Option<()> {
+        let mut buckets: Vec<Bucket> = Vec::new();
+
+        for bucket_path in bucket_paths {
+            let bucket_name = Bucket::get_name(&bucket_path);
+            let app_paths = App::get_app_paths(&bucket_path);
+            
+            let filtered_apps: Vec<App> = app_paths
+                .iter()
+                //.map(|app_path| App::get_name(app_path))
+                .filter(|app_path| App::get_name(app_path).contains(query))
+                .map(|app_path| {
+                    let(version, _) = App::get_version_bin(app_path).unwrap();
+                    App { 
+                        name: App::get_name(app_path),
+                        version,
+                        bin: Vec::new(),
+                    }
+                })
+                .collect();
+
+            buckets.push(Bucket::new(bucket_name, filtered_apps))
+        }
+
+        if buckets.len() > 0 {
+            return None;
+        }
+
+        display_buckets(&buckets);
+
+        Some(())
+    }
+
     fn search_remote_buckets(
         scoop: &Scoop,
         local_bucket_names: &Vec<String>,
@@ -188,6 +221,18 @@ impl App {
             .map(|path| path.unwrap().path())
             .collect()
     }
+
+    /*
+    fn get_app_names(bucket_path: &PathBuf) -> Vec<String> {
+        let mut path: PathBuf = PathBuf::from(bucket_path);
+
+        path.push("bucket");
+        fs::read_dir(path)
+            .unwrap()
+            .map(|path| path.unwrap().path().file_stem().unwrap().to_string_lossy().to_string())
+            .collect()
+    }
+    */
 
     fn search_apps(apps: &Vec<App>, query: &str) -> Vec<App> {
         let mut result: Vec<App> = Vec::new();
@@ -367,7 +412,7 @@ mod test {
             bin: Vec::new(),
         }];
 
-        let actual = search_apps(&apps, &query);
+        let actual = App::search_apps(&apps, &query);
 
         assert_eq!(expect, actual);
     }
@@ -377,7 +422,7 @@ mod test {
         let remote_url =
             "https://api.github.com/repos/ScoopInstaller/Main/git/trees/HEAD?recursive=1";
         let query = "7zip";
-        let acutual = search_remote_apps(remote_url, query);
+        let acutual = App::search_remote_apps(remote_url, query);
 
         let expect = vec![App {
             name: String::from("bucket/7zip"),
