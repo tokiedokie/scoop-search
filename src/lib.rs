@@ -345,7 +345,6 @@ pub fn parse_args(args: env::Args) -> Result<Args, &'static str> {
     let query: String;
     let mut exclude_bin = true;
 
-    // args.next() always returns Some(), so thise unwrap() is OK
     match &args.len() {
         1 => return Err("Didn't get query"),
         2 => query = args[1].clone(),
