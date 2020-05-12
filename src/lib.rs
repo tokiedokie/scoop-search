@@ -134,7 +134,7 @@ impl Bucket {
         scoop: &Scoop,
         local_bucket_names: &Vec<String>,
         query: &str,
-    ) -> Option<()> {
+    ) -> Option<Vec<Bucket>> {
         let mut buckets: Vec<Bucket> = Vec::new();
 
         let remote_names_urls = Bucket::get_remote_names_urls(&scoop, &local_bucket_names);
@@ -151,12 +151,7 @@ impl Bucket {
             return None;
         }
 
-        println!("Results from other known buckets...");
-        println!("(add them using 'scoop bucket add <name>')");
-        println!("");
-        display_buckets(&buckets);
-
-        Some(())
+        Some(buckets)
     }
 }
 
@@ -335,6 +330,11 @@ impl Scoop {
     }
 }
 
+pub struct Args {
+    pub query: String,
+    pub except_bin: bool,
+}
+
 pub fn get_query(mut args: env::Args) -> Result<String, &'static str> {
     args.next();
     let query = match args.next() {
@@ -343,6 +343,22 @@ pub fn get_query(mut args: env::Args) -> Result<String, &'static str> {
     };
 
     Ok(query.to_lowercase())
+}
+
+pub fn parse_args(mut args: env::Args) -> Result<Args, &'static str> {
+    args.next();
+    
+    let query = match args.next() {
+        Some(arg) => arg,
+        None => return Err("Didn't get a query"),
+    };
+    
+    let except_bin = args.find(|arg| arg == "-b").is_some();
+
+    Ok(Args {
+        query: query.to_lowercase(),
+        except_bin,
+    })
 }
 
 pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
@@ -356,7 +372,12 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
                 .map(|path| Bucket::get_name(path))
                 .collect();
             match Bucket::search_remote_buckets(scoop, local_bucket_names, query) {
-                Some(_) => {}
+                Some(buckets) => {
+                    println!("Results from other known buckets...");
+                    println!("(add them using 'scoop bucket add <name>')");
+                    println!("");
+                    display_buckets(&buckets);
+                },
                 None => println!("No matches found."),
             }
         }
