@@ -114,11 +114,11 @@ impl Bucket {
 
             buckets.push(Bucket::new(remote_name, remote_apps))
         }
-        
+
         if buckets.len() == 0 {
             return None;
         }
-        
+
         println!("Results from other known buckets...");
         println!("(add them using 'scoop bucket add <name>')");
         println!("");
