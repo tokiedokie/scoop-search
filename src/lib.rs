@@ -64,7 +64,7 @@ impl Bucket {
                     "https://api.github.com/repos/{}/{}/git/trees/HEAD?recursive=1",
                     user, repository
                 );
-                result.push((*bucket_tuple.0, api_link));
+                result.push((bucket_tuple.0.clone(), api_link));
             }
         }
         result
@@ -223,7 +223,14 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
         let local_bucket_names = &bucket_paths.iter().map(|path| Bucket::get_name(path)).collect();
         let remote_names_urls = Bucket::get_remote_names_urls(&scoop, &local_bucket_names);
         for remote_name_url in remote_names_urls {
+            let remote_name = remote_name_url.0;
             let remote_url = remote_name_url.1;
+
+            let remote_apps = search_remote_apps(&remote_url, query);
+
+            
+
+            display_remote_apps(&remote_name, &remote_apps);
         }
         /*
         let buckets = &bucket_paths.iter().map(|path| Bucket { name: Bucket::get_name(&path), apps: Vec::new() }).collect();
@@ -307,7 +314,23 @@ fn search_apps(apps: &Vec<App>, query: &str) -> Vec<App> {
 }
 
 fn search_remote_apps(remote_url: &str, query: &str) -> Vec<App> {
-    Vec::new()
+    let response_json = ureq::get(remote_url).call().into_json().unwrap();
+
+    let tree = response_json.get("tree").expect("Can't get remote repository");
+    
+    let filtered: Vec<App> = tree
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|obj| obj["path"].as_str().unwrap().to_string())
+        .filter(|path| path.ends_with(".json"))
+        .map(|path| path.trim_end_matches(".json").to_string())
+        .filter(|path| path.contains(query))
+        .map(|name| App { name, version: String::new(), bin: Vec::new() })
+        .collect();
+
+
+    filtered
 }
 
 /*
@@ -496,6 +519,18 @@ mod test {
     }
 
     #[test]
-    fn test_search_remote_apps() {}
+    fn test_search_remote_apps() {
+        let remote_url = "https://api.github.com/repos/ScoopInstaller/Main/git/trees/HEAD?recursive=1";
+        let query = "7zip";
+        let acutual = search_remote_apps(remote_url, query);
+
+        let expect = vec!(App {
+            name: String::from("bucket/7zip"),
+            version: String::new(),
+            bin: Vec::new(),
+        });
+
+        assert_eq!(expect, acutual);
+    }
 
 }
