@@ -6,5 +6,6 @@
     "depends":  "",
     "homepage":  "https://github.com/tokiedokie/scoop-search",
     "hash":  "e33acca90cdc2be2e83e717640c648f0bd5e8a927fb10c36e67182ce4a31e1dc",
-    "bin":  "scoop-search.exe"
+    "bin":  "scoop-search.exe",
+    "checkver": "github"
 }
