@@ -347,12 +347,12 @@ pub fn get_query(mut args: env::Args) -> Result<String, &'static str> {
 
 pub fn parse_args(mut args: env::Args) -> Result<Args, &'static str> {
     args.next();
-    
+
     let query = match args.next() {
         Some(arg) => arg,
         None => return Err("Didn't get a query"),
     };
-    
+
     let except_bin = args.find(|arg| arg == "-b").is_some();
 
     Ok(Args {
@@ -361,7 +361,7 @@ pub fn parse_args(mut args: env::Args) -> Result<Args, &'static str> {
     })
 }
 
-pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
+fn search_include_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
     let bucket_paths = Bucket::get_bucket_paths(scoop);
 
     match Bucket::search_local_buckets(&bucket_paths, query) {
@@ -377,13 +377,42 @@ pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
                     println!("(add them using 'scoop bucket add <name>')");
                     println!("");
                     display_buckets(&buckets);
-                },
+                }
                 None => println!("No matches found."),
             }
         }
     }
 
     Ok(())
+}
+
+fn search_except_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
+    let bucket_paths = Bucket::get_bucket_paths(scoop);
+
+    match Bucket::search_except_bin(&bucket_paths, query) {
+        Some(buckets) => display_buckets(&buckets),
+        None => {
+            let local_bucket_names = &bucket_paths
+                .iter()
+                .map(|path| Bucket::get_name(path))
+                .collect();
+            match Bucket::search_remote_buckets(scoop, local_bucket_names, query) {
+                Some(buckets) => {
+                    println!("Results from other known buckets...");
+                    println!("(add them using 'scoop bucket add <name>')");
+                    println!("");
+                    display_buckets(&buckets);
+                }
+                None => println!("No matches found."),
+            }
+        }
+    }
+
+    Ok(())
+}
+
+pub fn run(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
+    search_include_bin(scoop, query)
 }
 
 fn display_apps(bucket_name: &str, apps: &Vec<App>) {
