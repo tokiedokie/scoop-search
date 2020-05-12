@@ -98,7 +98,7 @@ impl Bucket {
         Some(())
     }
 
-    fn search_except_bin(bucket_paths: &Vec<PathBuf>, query: &str) -> Option<()> {
+    fn search_except_bin(bucket_paths: &Vec<PathBuf>, query: &str) -> Option<Vec<Bucket>> {
         let mut buckets: Vec<Bucket> = Vec::new();
 
         for bucket_path in bucket_paths {
@@ -110,9 +110,10 @@ impl Bucket {
                 //.map(|app_path| App::get_name(app_path))
                 .filter(|app_path| App::get_name(app_path).contains(query))
                 .map(|app_path| {
+                    let name = App::get_name(app_path);
                     let (version, _) = App::get_version_bin(app_path).unwrap();
                     App {
-                        name: App::get_name(app_path),
+                        name,
                         version,
                         bin: Vec::new(),
                     }
@@ -122,13 +123,11 @@ impl Bucket {
             buckets.push(Bucket::new(bucket_name, filtered_apps))
         }
 
-        if buckets.len() > 0 {
+        if buckets.len() == 0 {
             return None;
         }
 
-        display_buckets(&buckets);
-
-        Some(())
+        Some(buckets)
     }
 
     fn search_remote_buckets(
@@ -433,7 +432,6 @@ mod test {
         assert_eq!(expect, actual);
     }
 
-    /*
     #[test]
     fn test_search_except_bin() {
         let scoop = Scoop::new();
@@ -442,7 +440,33 @@ mod test {
 
         let actual = Bucket::search_except_bin(&bucket_paths, query);
 
-        let expect =
+        let expect = Some(vec![
+            Bucket {
+                name: String::from("extras"),
+                apps: Vec::new(),
+            },
+            Bucket {
+                name: String::from("games"),
+                apps: Vec::new(),
+            },
+            Bucket {
+                name: String::from("java"),
+                apps: Vec::new(),
+            },
+            Bucket {
+                name: String::from("main"),
+                apps: vec![App {
+                    name: String::from("7zip"),
+                    version: String::from("19.00"),
+                    bin: Vec::new(),
+                }],
+            },
+            Bucket {
+                name: String::from("nerd-fonts"),
+                apps: Vec::new(),
+            },
+        ]);
+
+        assert_eq!(expect, actual);
     }
-    */
 }
