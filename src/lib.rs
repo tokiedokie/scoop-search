@@ -104,14 +104,14 @@ impl Bucket {
         for bucket_path in bucket_paths {
             let bucket_name = Bucket::get_name(&bucket_path);
             let app_paths = App::get_app_paths(&bucket_path);
-            
+
             let filtered_apps: Vec<App> = app_paths
                 .iter()
                 //.map(|app_path| App::get_name(app_path))
                 .filter(|app_path| App::get_name(app_path).contains(query))
                 .map(|app_path| {
-                    let(version, _) = App::get_version_bin(app_path).unwrap();
-                    App { 
+                    let (version, _) = App::get_version_bin(app_path).unwrap();
+                    App {
                         name: App::get_name(app_path),
                         version,
                         bin: Vec::new(),
@@ -422,7 +422,7 @@ mod test {
         let remote_url =
             "https://api.github.com/repos/ScoopInstaller/Main/git/trees/HEAD?recursive=1";
         let query = "7zip";
-        let acutual = App::search_remote_apps(remote_url, query);
+        let actual = App::search_remote_apps(remote_url, query);
 
         let expect = vec![App {
             name: String::from("bucket/7zip"),
@@ -430,6 +430,19 @@ mod test {
             bin: Vec::new(),
         }];
 
-        assert_eq!(expect, acutual);
+        assert_eq!(expect, actual);
     }
+
+    /*
+    #[test]
+    fn test_search_except_bin() {
+        let scoop = Scoop::new();
+        let bucket_paths = Bucket::get_bucket_paths(&scoop);
+        let query = "7zip";
+
+        let actual = Bucket::search_except_bin(&bucket_paths, query);
+
+        let expect =
+    }
+    */
 }
