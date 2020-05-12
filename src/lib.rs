@@ -98,7 +98,7 @@ impl Bucket {
         Some(())
     }
 
-    fn search_except_bin(bucket_paths: &Vec<PathBuf>, query: &str) -> Option<Vec<Bucket>> {
+    fn search_exclude_bin(bucket_paths: &Vec<PathBuf>, query: &str) -> Option<Vec<Bucket>> {
         let mut buckets: Vec<Bucket> = Vec::new();
 
         for bucket_path in bucket_paths {
@@ -127,9 +127,9 @@ impl Bucket {
             .find(|bucket| bucket.apps.len() != 0)
             .is_some()
         {
-            return Some(buckets)
+            return Some(buckets);
         }
-        
+
         None
     }
 
@@ -155,9 +155,9 @@ impl Bucket {
             .find(|bucket| bucket.apps.len() != 0)
             .is_some()
         {
-            return Some(buckets)
+            return Some(buckets);
         }
-        
+
         None
     }
 }
@@ -327,7 +327,7 @@ impl Scoop {
 
 pub struct Args {
     pub query: String,
-    pub except_bin: bool,
+    pub exclude_bin: bool,
 }
 
 pub fn get_query(mut args: env::Args) -> Result<String, &'static str> {
@@ -348,11 +348,11 @@ pub fn parse_args(mut args: env::Args) -> Result<Args, &'static str> {
         None => return Err("Didn't get a query"),
     };
 
-    let except_bin = args.find(|arg| arg == "-b").is_some();
+    let exclude_bin = args.find(|arg| arg == "-b").is_some();
 
     Ok(Args {
         query: query.to_lowercase(),
-        except_bin,
+        exclude_bin,
     })
 }
 
@@ -384,7 +384,7 @@ fn search_include_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> 
 fn search_exclude_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
     let bucket_paths = Bucket::get_bucket_paths(scoop);
 
-    match Bucket::search_except_bin(&bucket_paths, query) {
+    match Bucket::search_exclude_bin(&bucket_paths, query) {
         Some(buckets) => display_buckets(&buckets),
         None => {
             let local_bucket_names = &bucket_paths
@@ -481,12 +481,12 @@ mod test {
     }
 
     #[test]
-    fn test_search_except_bin() {
+    fn test_search_exclude_bin() {
         let scoop = Scoop::new();
         let bucket_paths = Bucket::get_bucket_paths(&scoop);
         let query = "7zip";
 
-        let actual = Bucket::search_except_bin(&bucket_paths, query);
+        let actual = Bucket::search_exclude_bin(&bucket_paths, query);
 
         let expect = Some(vec![
             Bucket {
