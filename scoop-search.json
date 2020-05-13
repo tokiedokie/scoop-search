@@ -1,11 +1,14 @@
-﻿{
-    "version":  "0.4.1",
-    "license":  "",
-    "extract_dir":  "",
-    "url":  "https://github.com/tokiedokie/scoop-search/releases/download/0.4.1/scoop-search.exe",
-    "depends":  "",
-    "homepage":  "https://github.com/tokiedokie/scoop-search",
-    "hash":  "e33acca90cdc2be2e83e717640c648f0bd5e8a927fb10c36e67182ce4a31e1dc",
-    "bin":  "scoop-search.exe",
-    "checkver": "github"
+{
+    "version": "0.4.2",
+    "license": "",
+    "extract_dir": "",
+    "url": "https://github.com/tokiedokie/scoop-search/releases/download/v0.4.2/scoop-search.exe",
+    "depends": "",
+    "homepage": "https://github.com/tokiedokie/scoop-search",
+    "hash": "5577c447ceafa15ed166be86213f62ebc3aaf5e67c6e5de9c23119f32af5e0d5",
+    "bin": "scoop-search.exe",
+    "checkver": "github",
+    "autoupdate": {
+        "url": "https://github.com/tokiedokie/scoop-search/releases/download/v$version/scoop-search.exe"
+    }
 }
