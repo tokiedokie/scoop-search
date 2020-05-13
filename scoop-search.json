@@ -1,6 +1,6 @@
 {
     "version": "0.4.2",
-    "license": "",
+    "license": "MIT",
     "extract_dir": "",
     "url": "https://github.com/tokiedokie/scoop-search/releases/download/v0.4.2/scoop-search.exe",
     "depends": "",
