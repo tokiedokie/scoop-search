@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::PathBuf;
 
-use crate::scoop::Scoop;
 use crate::app::App;
+use crate::scoop::Scoop;
 
 #[derive(Debug, PartialEq)]
 pub struct Bucket {
