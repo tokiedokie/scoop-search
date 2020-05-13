@@ -74,7 +74,7 @@ impl Bucket {
         result
     }
 
-    pub fn search_local_buckets(bucket_paths: &Vec<PathBuf>, query: &str) -> Option<()> {
+    pub fn search_include_bin(bucket_paths: &Vec<PathBuf>, query: &str) -> Option<()> {
         let mut app_in_local = false;
 
         for bucket_path in bucket_paths {

@@ -53,7 +53,7 @@ pub fn parse_args(args: env::Args) -> Result<Args, &'static str> {
 fn search_include_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
     let bucket_paths = Bucket::get_bucket_paths(scoop);
 
-    match Bucket::search_local_buckets(&bucket_paths, query) {
+    match Bucket::search_include_bin(&bucket_paths, query) {
         Some(_) => {}
         None => {
             let local_bucket_names = &bucket_paths
@@ -92,7 +92,7 @@ fn search_exclude_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> 
                     println!("");
                     display_buckets(&buckets);
                 }
-                None => match Bucket::search_local_buckets(&bucket_paths, query) {
+                None => match Bucket::search_include_bin(&bucket_paths, query) {
                     Some(_) => {}
                     None => println!("No matches found."),
                 },
