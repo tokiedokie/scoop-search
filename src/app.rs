@@ -67,7 +67,7 @@ impl App {
         let mut result: Vec<App> = Vec::new();
 
         for app in apps {
-            if app.name.contains(query) {
+            if app.name.to_lowercase().contains(query) {
                 result.push(App {
                     name: app.name.clone(),
                     version: app.version.clone(),
@@ -80,7 +80,7 @@ impl App {
                         .unwrap_or(std::ffi::OsStr::new(""))
                         .to_string_lossy()
                         .to_string();
-                    if bin.contains(query) {
+                    if bin.to_lowercase().contains(query) {
                         result.push(App {
                             name: app.name.clone(),
                             version: app.version.clone(),
@@ -108,7 +108,7 @@ impl App {
             .map(|obj| obj["path"].as_str().unwrap().to_string())
             .filter(|path| path.ends_with(".json"))
             .map(|path| path.trim_end_matches(".json").to_string())
-            .filter(|path| path.contains(query))
+            .filter(|path| path.to_lowercase().contains(query))
             .map(|name| App {
                 name,
                 version: String::new(),

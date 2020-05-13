@@ -108,7 +108,7 @@ impl Bucket {
 
             let filtered_apps: Vec<App> = app_paths
                 .iter()
-                .filter(|app_path| App::get_name(app_path).contains(query))
+                .filter(|app_path| App::get_name(app_path).to_lowercase().contains(query))
                 .map(|app_path| {
                     let name = App::get_name(app_path);
                     let (version, _) = App::get_version_bin(app_path).unwrap();
