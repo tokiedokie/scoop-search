@@ -1,6 +1,6 @@
 # scoop-search
 
-scooop-search is a tool for a windows package maneger [scoop](https://scoop.sh/)
+scoop-search is a tool for a windows package maneger [scoop](https://scoop.sh/)
 
 `scoop-search` instead of `scoop search`
 
