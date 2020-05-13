@@ -87,9 +87,9 @@ impl Bucket {
 
             if filtered_apps.len() > 0 {
                 app_in_local = true;
+                crate::display_apps(&bucket_name, &filtered_apps);
             }
 
-            crate::display_apps(&bucket_name, &filtered_apps);
         }
 
         if !app_in_local {
