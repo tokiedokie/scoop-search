@@ -29,13 +29,13 @@ impl Bucket {
     fn get_remote_names_urls(
         scoop: &Scoop,
         local_bucket_names: &Vec<String>,
-    ) -> Vec<(String, String)> {
+    ) -> Option<Vec<(String, String)>> {
         let mut buckets_file = PathBuf::from(scoop.dir.as_os_str());
         buckets_file.push("apps\\scoop\\current\\buckets.json");
 
         let buckets_json: serde_json::Value =
-            serde_json::from_str(&fs::read_to_string(&buckets_file).unwrap()).unwrap();
-        let buckets_map = buckets_json.as_object().unwrap();
+            serde_json::from_str(&fs::read_to_string(&buckets_file).ok()?).ok()?;
+        let buckets_map = buckets_json.as_object()?;
 
         let mut result: Vec<(String, String)> = Vec::new();
 
@@ -45,17 +45,15 @@ impl Bucket {
                 .find(|name| name == &bucket_tuple.0)
                 .is_none()
             {
-                let mut bucket = PathBuf::from(bucket_tuple.1.as_str().unwrap().to_string());
+                let mut bucket = PathBuf::from(bucket_tuple.1.as_str()?.to_string());
                 let repository = bucket
-                    .file_stem()
-                    .unwrap()
+                    .file_stem()?
                     .to_os_string()
                     .to_string_lossy()
                     .to_string();
                 bucket.pop();
                 let user = bucket
-                    .file_stem()
-                    .unwrap()
+                    .file_stem()?
                     .to_os_string()
                     .to_string_lossy()
                     .to_string();
@@ -66,7 +64,8 @@ impl Bucket {
                 result.push((bucket_tuple.0.clone(), api_link));
             }
         }
-        result
+
+        Some(result)
     }
 
     pub fn search_include_bin(bucket_paths: &Vec<PathBuf>, query: &str) -> Option<()> {
@@ -141,7 +140,8 @@ impl Bucket {
     ) -> Option<Vec<Bucket>> {
         let mut buckets: Vec<Bucket> = Vec::new();
 
-        let remote_names_urls = Bucket::get_remote_names_urls(&scoop, &local_bucket_names);
+        let remote_names_urls =
+            Bucket::get_remote_names_urls(&scoop, &local_bucket_names).unwrap_or(Vec::new());
         for remote_name_url in remote_names_urls {
             let remote_name = remote_name_url.0;
             let remote_url = remote_name_url.1;
