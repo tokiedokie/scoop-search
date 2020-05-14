@@ -15,14 +15,9 @@ impl Bucket {
         Bucket { name, apps }
     }
 
-    pub fn get_name(path: &PathBuf) -> String {
-        let name = path
-            .file_name()
-            .unwrap()
-            .to_os_string()
-            .into_string()
-            .unwrap();
-        name
+    pub fn get_name(path: &PathBuf) -> Option<String> {
+        let name = path.file_name()?.to_os_string().into_string().ok()?;
+        Some(name)
     }
 
     pub fn get_bucket_paths(scoop: &Scoop) -> Vec<PathBuf> {
@@ -78,7 +73,7 @@ impl Bucket {
         let mut app_in_local = false;
 
         for bucket_path in bucket_paths {
-            let bucket_name = Bucket::get_name(&bucket_path);
+            let bucket_name = Bucket::get_name(&bucket_path).unwrap_or(String::new());
             let app_paths = App::get_app_paths(&bucket_path)?;
 
             let apps: Vec<App> = app_paths.iter().map(|path| App::new(path)).collect();
@@ -102,7 +97,7 @@ impl Bucket {
         let mut buckets: Vec<Bucket> = Vec::new();
 
         for bucket_path in bucket_paths {
-            let bucket_name = Bucket::get_name(&bucket_path);
+            let bucket_name = Bucket::get_name(&bucket_path).unwrap_or(String::new());
             let app_paths = App::get_app_paths(&bucket_path)?;
 
             let filtered_apps: Vec<App> = app_paths
@@ -114,9 +109,9 @@ impl Bucket {
                         .contains(query)
                 })
                 .map(|app_path| {
-                    let name = App::get_name(app_path).unwrap_or(String::from(""));
+                    let name = App::get_name(app_path).unwrap_or(String::new());
                     let (version, _) =
-                        App::get_version_bin(app_path).unwrap_or((String::from(""), Vec::new()));
+                        App::get_version_bin(app_path).unwrap_or((String::new(), Vec::new()));
                     App {
                         name,
                         version,

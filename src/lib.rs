@@ -58,7 +58,7 @@ fn search_include_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> 
         None => {
             let local_bucket_names = &bucket_paths
                 .iter()
-                .map(|path| Bucket::get_name(path))
+                .map(|path| Bucket::get_name(path).unwrap_or(String::new()))
                 .collect();
             match Bucket::search_remote_buckets(scoop, local_bucket_names, query) {
                 Some(buckets) => {
@@ -83,7 +83,7 @@ fn search_exclude_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> 
         None => {
             let local_bucket_names = &bucket_paths
                 .iter()
-                .map(|path| Bucket::get_name(path))
+                .map(|path| Bucket::get_name(path).unwrap_or(String::new()))
                 .collect();
             match Bucket::search_remote_buckets(scoop, local_bucket_names, query) {
                 Some(buckets) => {
