@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -100,18 +101,20 @@ impl App {
         result
     }
 
-    pub fn search_remote_apps(remote_url: &str, query: &str) -> Vec<App> {
-        let response_json = ureq::get(remote_url).call().into_json().unwrap();
+    pub fn search_remote_apps(remote_url: &str, query: &str) -> Result<Vec<App>, Box<dyn Error>> {
+        let response_json = ureq::get(remote_url).call().into_json()?;
 
         let tree = response_json
             .get("tree")
-            .expect("Can't get remote repository");
+            .ok_or(Box::<dyn Error>::from("Can't get remote repository"))?;
 
         let filtered: Vec<App> = tree
             .as_array()
-            .unwrap()
+            .ok_or(Box::<dyn Error>::from(
+                format!("{} key `tree` is invalid", remote_url),
+            ))?
             .iter()
-            .map(|obj| obj["path"].as_str().unwrap().to_string())
+            .map(|obj| obj["path"].as_str().unwrap_or("").to_string())
             .filter(|path| path.ends_with(".json"))
             .map(|path| path.trim_end_matches(".json").to_string())
             .filter(|path| path.to_lowercase().contains(query))
@@ -122,6 +125,6 @@ impl App {
             })
             .collect();
 
-        filtered
+        Ok(filtered)
     }
 }
