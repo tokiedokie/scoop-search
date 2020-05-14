@@ -115,7 +115,8 @@ impl Bucket {
                 })
                 .map(|app_path| {
                     let name = App::get_name(app_path).unwrap_or(String::from(""));
-                    let (version, _) = App::get_version_bin(app_path).unwrap();
+                    let (version, _) = App::get_version_bin(app_path)
+                        .unwrap_or((String::from(""), Vec::new()));
                     App {
                         name,
                         version,

@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -21,11 +20,14 @@ impl App {
         Some(name)
     }
 
-    pub fn get_version_bin(path: &Path) -> Result<(String, Vec<String>), Box<dyn Error>> {
-        let manufest = fs::read_to_string(&path)?;
-        let manufest_json: serde_json::Value = serde_json::from_str(&manufest)?;
+    pub fn get_version_bin(path: &Path) -> Option<(String, Vec<String>)> {
+        let manufest = fs::read_to_string(&path).ok()?;
+        let manufest_json: serde_json::Value = serde_json::from_str(&manufest).ok()?;
 
-        let version: String = manufest_json["version"].as_str().unwrap().to_string();
+        let version: String = match manufest_json.get("version") {
+            Some(version) => version.as_str().unwrap().to_string(),
+            None => String::from(""),
+        };
 
         let bin: Vec<String> = match manufest_json.get("bin") {
             Some(x) => match x.as_str() {
@@ -45,7 +47,7 @@ impl App {
             None => Vec::new(),
         };
 
-        Ok((version, bin))
+        Some((version, bin))
     }
 
     pub fn get_app_paths(bucket_path: &PathBuf) -> Vec<PathBuf> {
