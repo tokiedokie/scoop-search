@@ -89,7 +89,6 @@ impl Bucket {
                 app_in_local = true;
                 crate::display_apps(&bucket_name, &filtered_apps);
             }
-
         }
 
         if !app_in_local {
@@ -108,9 +107,14 @@ impl Bucket {
 
             let filtered_apps: Vec<App> = app_paths
                 .iter()
-                .filter(|app_path| App::get_name(app_path).unwrap().to_lowercase().contains(query))
+                .filter(|app_path| {
+                    App::get_name(app_path)
+                        .unwrap_or(String::from(""))
+                        .to_lowercase()
+                        .contains(query)
+                })
                 .map(|app_path| {
-                    let name = App::get_name(app_path).unwrap();
+                    let name = App::get_name(app_path).unwrap_or(String::from(""));
                     let (version, _) = App::get_version_bin(app_path).unwrap();
                     App {
                         name,

@@ -16,14 +16,9 @@ impl App {
         App { name, version, bin }
     }
 
-    pub fn get_name(path: &PathBuf) -> Result<String, Box<dyn Error>> {
-        let name = path
-            .file_stem()
-            .ok_or("can't detect file name")?
-            .to_os_string()
-            .into_string()
-            .map_err(|err| err.to_string_lossy().to_string())?;
-        Ok(name)
+    pub fn get_name(path: &PathBuf) -> Option<String> {
+        let name = path.file_stem()?.to_os_string().into_string().ok()?;
+        Some(name)
     }
 
     pub fn get_version_bin(path: &Path) -> Result<(String, Vec<String>), Box<dyn Error>> {
