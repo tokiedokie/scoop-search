@@ -167,7 +167,7 @@ mod test {
         let remote_url =
             "https://api.github.com/repos/ScoopInstaller/Main/git/trees/HEAD?recursive=1";
         let query = "7zip";
-        let actual = App::search_remote_apps(remote_url, query);
+        let actual = App::search_remote_apps(remote_url, query).unwrap();
 
         let expect = vec![App {
             name: String::from("bucket/7zip"),
