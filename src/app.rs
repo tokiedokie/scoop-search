@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct App {
@@ -20,7 +20,7 @@ impl App {
         Some(name)
     }
 
-    pub fn get_version_bin(path: &Path) -> Option<(String, Vec<String>)> {
+    pub fn get_version_bin(path: &PathBuf) -> Option<(String, Vec<String>)> {
         let manufest = fs::read_to_string(&path).ok()?;
         let manufest_json: serde_json::Value = serde_json::from_str(&manufest).ok()?;
 
