@@ -110,9 +110,10 @@ impl App {
 
         let filtered: Vec<App> = tree
             .as_array()
-            .ok_or(Box::<dyn Error>::from(
-                format!("{} key `tree` is invalid", remote_url),
-            ))?
+            .ok_or(Box::<dyn Error>::from(format!(
+                "{} key `tree` is invalid",
+                remote_url
+            )))?
             .iter()
             .map(|obj| obj["path"].as_str().unwrap_or("").to_string())
             .filter(|path| path.ends_with(".json"))

@@ -146,7 +146,7 @@ impl Bucket {
             let remote_name = remote_name_url.0;
             let remote_url = remote_name_url.1;
 
-            let remote_apps = App::search_remote_apps(&remote_url, query).unwrap();
+            let remote_apps = App::search_remote_apps(&remote_url, query).ok()?;
 
             buckets.push(Bucket::new(remote_name, remote_apps))
         }
