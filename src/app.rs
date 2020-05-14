@@ -10,8 +10,8 @@ pub struct App {
 
 impl App {
     pub fn new(path: &PathBuf) -> App {
-        let name = App::get_name(&path).unwrap();
-        let (version, bin) = App::get_version_bin(&path).unwrap();
+        let name = App::get_name(&path).unwrap_or(String::from(""));
+        let (version, bin) = App::get_version_bin(&path).unwrap_or((String::new(), Vec::new()));
         App { name, version, bin }
     }
 
@@ -25,7 +25,10 @@ impl App {
         let manufest_json: serde_json::Value = serde_json::from_str(&manufest).ok()?;
 
         let version: String = match manufest_json.get("version") {
-            Some(version) => version.as_str().unwrap().to_string(),
+            Some(version) => version
+                .as_str()
+                .expect("version in manifest is invalid.")
+                .to_string(),
             None => String::from(""),
         };
 
@@ -50,14 +53,20 @@ impl App {
         Some((version, bin))
     }
 
-    pub fn get_app_paths(bucket_path: &PathBuf) -> Vec<PathBuf> {
+    pub fn get_app_paths(bucket_path: &PathBuf) -> Option<Vec<PathBuf>> {
         let mut path: PathBuf = PathBuf::from(bucket_path);
 
         path.push("bucket");
-        fs::read_dir(path)
-            .unwrap()
+        let app_paths: Vec<PathBuf> = fs::read_dir(path)
+            .ok()?
             .map(|path| path.unwrap().path())
-            .collect()
+            .collect();
+
+        if app_paths.is_empty() {
+            return None;
+        }
+
+        Some(app_paths)
     }
 
     pub fn search_apps(apps: &Vec<App>, query: &str) -> Vec<App> {

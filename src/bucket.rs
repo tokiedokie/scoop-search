@@ -79,7 +79,7 @@ impl Bucket {
 
         for bucket_path in bucket_paths {
             let bucket_name = Bucket::get_name(&bucket_path);
-            let app_paths = App::get_app_paths(&bucket_path);
+            let app_paths = App::get_app_paths(&bucket_path)?;
 
             let apps: Vec<App> = app_paths.iter().map(|path| App::new(path)).collect();
 
@@ -103,7 +103,7 @@ impl Bucket {
 
         for bucket_path in bucket_paths {
             let bucket_name = Bucket::get_name(&bucket_path);
-            let app_paths = App::get_app_paths(&bucket_path);
+            let app_paths = App::get_app_paths(&bucket_path)?;
 
             let filtered_apps: Vec<App> = app_paths
                 .iter()
@@ -115,8 +115,8 @@ impl Bucket {
                 })
                 .map(|app_path| {
                     let name = App::get_name(app_path).unwrap_or(String::from(""));
-                    let (version, _) = App::get_version_bin(app_path)
-                        .unwrap_or((String::from(""), Vec::new()));
+                    let (version, _) =
+                        App::get_version_bin(app_path).unwrap_or((String::from(""), Vec::new()));
                     App {
                         name,
                         version,
