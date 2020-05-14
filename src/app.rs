@@ -11,19 +11,19 @@ pub struct App {
 
 impl App {
     pub fn new(path: &PathBuf) -> App {
-        let name = App::get_name(&path);
+        let name = App::get_name(&path).unwrap();
         let (version, bin) = App::get_version_bin(&path).unwrap();
         App { name, version, bin }
     }
 
-    pub fn get_name(path: &PathBuf) -> String {
+    pub fn get_name(path: &PathBuf) -> Result<String, Box<dyn Error>> {
         let name = path
             .file_stem()
-            .unwrap()
+            .ok_or("can't detect file name")?
             .to_os_string()
             .into_string()
-            .unwrap();
-        name
+            .map_err(|err| err.to_string_lossy().to_string())?;
+        Ok(name)
     }
 
     pub fn get_version_bin(path: &Path) -> Result<(String, Vec<String>), Box<dyn Error>> {

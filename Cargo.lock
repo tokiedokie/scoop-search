@@ -175,7 +175,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "scoop-search"
-version = "0.4.3"
+version = "0.4.4"
 dependencies = [
  "serde_json 1.0.52 (registry+https://github.com/rust-lang/crates.io-index)",
  "ureq 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
