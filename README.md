@@ -1,5 +1,5 @@
 ![Build](https://github.com/tokiedokie/scoop-search/workflows/Build/badge.svg)
-![Release](https://github.com/tokiedokie/scoop-search/workflows/Release/badge.svg)
+![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/tokiedokie/scoop-search?include_prereleases)
 
 # scoop-search
 
