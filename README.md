@@ -1,3 +1,6 @@
+![Build](https://github.com/tokiedokie/scoop-search/workflows/Build/badge.svg)
+![Release](https://github.com/tokiedokie/scoop-search/workflows/Release/badge.svg)
+
 # scoop-search
 
 scoop-search is a tool for a windows package maneger [scoop](https://scoop.sh/)
