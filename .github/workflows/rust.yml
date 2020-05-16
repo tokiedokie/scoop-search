@@ -15,5 +15,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build
       run: cargo build --verbose
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --release
     - name: Run tests
       run: cargo test --verbose
