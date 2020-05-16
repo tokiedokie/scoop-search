@@ -13,12 +13,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        target: x86_64-pc-windows-gnu
-        override: true
     - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --release
+      #run: cargo build --verbose
+      #- name: Run tests
+      #run: cargo test --verbose
