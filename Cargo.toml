@@ -1,6 +1,6 @@
 [package]
 name = "scoop-search"
-version = "0.4.8"
+version = "0.4.9"
 authors = ["tokiedokie <42903136+tokiedokie@users.noreply.github.com>"]
 edition = "2018"
 
@@ -8,6 +8,7 @@ edition = "2018"
 
 [profile.release]
 lto = true
+panic = 'abort'
 
 [dependencies]
 ureq = { version = "*", features = ["json"] }
