@@ -18,8 +18,8 @@ impl Scoop {
     }
 
     fn get_scoop_dir() -> Result<PathBuf, Box<dyn Error>> {
-        let scoop_dir = if env::var("SCOOP").is_ok() {
-            PathBuf::from(env::var("SCOOP")?)
+        let scoop_dir = if let Ok(scoop) = env::var("SCOOP") {
+            PathBuf::from(scoop)
         } else if let Ok(root_path) = Scoop::has_root_path() {
             PathBuf::from(root_path)
         } else {
