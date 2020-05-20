@@ -53,22 +53,19 @@ pub fn parse_args(args: env::Args) -> Result<Args, &'static str> {
 fn search_include_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
     let bucket_paths = Bucket::get_bucket_paths(scoop);
 
-    match Bucket::search_include_bin(&bucket_paths, query) {
-        Some(_) => {}
-        None => {
-            let local_bucket_names = &bucket_paths
-                .iter()
-                .map(|path| Bucket::get_name(path).unwrap_or(String::new()))
-                .collect();
-            match Bucket::search_remote_buckets(scoop, local_bucket_names, query) {
-                Some(buckets) => {
-                    println!("Results from other known buckets...");
-                    println!("(add them using 'scoop bucket add <name>')");
-                    println!("");
-                    display_buckets(&buckets);
-                }
-                None => println!("No matches found."),
+    if Bucket::search_include_bin(&bucket_paths, query).is_none() {
+        let local_bucket_names = &bucket_paths
+            .iter()
+            .map(|path| Bucket::get_name(path).unwrap_or(String::new()))
+            .collect();
+        match Bucket::search_remote_buckets(scoop, local_bucket_names, query) {
+            Some(buckets) => {
+                println!("Results from other known buckets...");
+                println!("(add them using 'scoop bucket add <name>')");
+                println!("");
+                display_buckets(&buckets);
             }
+            None => println!("No matches found."),
         }
     }
 
