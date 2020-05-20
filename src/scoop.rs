@@ -20,14 +20,8 @@ impl Scoop {
     fn get_scoop_dir() -> Result<PathBuf, Box<dyn Error>> {
         let scoop_dir = if env::var("SCOOP").is_ok() {
             PathBuf::from(env::var("SCOOP")?)
-        } else if Scoop::has_root_path()? {
-            let mut user_profile = PathBuf::from(env::var("USERPROFILE")?);
-            user_profile.push(".config");
-            user_profile.push("scoop");
-            user_profile.push("config.json");
-            let config_file = fs::read_to_string(&user_profile)?;
-            let config: serde_json::Value = serde_json::from_str(&config_file)?;
-            PathBuf::from(config["rootDir"].as_str().unwrap().to_string())
+        } else if let Ok(root_path) = Scoop::has_root_path() {
+            PathBuf::from(root_path)
         } else {
             let mut user_profile = PathBuf::from(env::var("USERPROFILE")?);
             user_profile.push("scoop");
@@ -37,13 +31,19 @@ impl Scoop {
         Ok(scoop_dir)
     }
 
-    fn has_root_path() -> Result<bool, Box<dyn Error>> {
+    fn has_root_path() -> Result<String, Box<dyn Error>> {
         let mut user_profile = PathBuf::from(env::var("USERPROFILE")?);
         user_profile.push(".config");
         user_profile.push("scoop");
         user_profile.push("config.json");
         let config_file = fs::read_to_string(&user_profile)?;
         let config: serde_json::Value = serde_json::from_str(&config_file)?;
-        Ok(config.get("rootPath").is_some())
+        //Ok(config.get("rootPath").is_some())
+        Ok(config
+            .get("rootPath")
+            .ok_or(Box::<dyn Error>::from(
+                "Can't get rootPath in scoop/config.json",
+            ))?
+            .to_string())
     }
 }
