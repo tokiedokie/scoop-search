@@ -31,8 +31,15 @@ pub fn parse_args(args: env::Args) -> Result<Args, &'static str> {
     let mut exclude_bin = true;
 
     match &args.len() {
-        1 => return Err("Didn't get query"),
-        2 => query = args[1].clone(),
+        1 => query = String::new(),
+        2 => {
+            if args[1] == "--bin" {
+                exclude_bin = false;
+                query = String::new();
+            } else {
+                query = args[1].clone()
+            }
+        },
         3 => {
             if args[1] == "--bin" {
                 exclude_bin = false;
