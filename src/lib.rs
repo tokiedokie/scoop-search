@@ -10,6 +10,7 @@ use self::bucket::Bucket;
 mod app;
 use self::app::App;
 
+#[derive(Debug, std::cmp::PartialEq)]
 pub struct Args {
     pub query: String,
     pub exclude_bin: bool,
@@ -36,14 +37,20 @@ pub fn parse_args(args: env::Args) -> Result<Args, &'static str> {
             if args[1] == "--bin" {
                 exclude_bin = false;
                 query = String::new();
+            } else if args[1] == "*" {
+                query = String::new();
             } else {
-                query = args[1].clone()
+                query = args[1].clone();
             }
-        },
+        }
         3 => {
             if args[1] == "--bin" {
                 exclude_bin = false;
-                query = args[2].clone();
+                if args[2] == "*" {
+                    query = String::new();
+                } else {
+                    query = args[2].clone();
+                }
             } else {
                 return Err("option is not valid");
             }
