@@ -1,7 +1,8 @@
 use std::env;
 use std::process;
 
-use scoop_search::*;
+use scoop_search::{parse_args, run};
+use scoop_search::scoop::Scoop;
 
 fn main() {
     let scoop = Scoop::new();

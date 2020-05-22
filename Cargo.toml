@@ -1,6 +1,6 @@
 [package]
 name = "scoop-search"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["tokiedokie <42903136+tokiedokie@users.noreply.github.com>"]
 edition = "2018"
 

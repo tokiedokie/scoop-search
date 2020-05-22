@@ -15,6 +15,11 @@ impl Bucket {
         Bucket { name, apps }
     }
 
+    /**
+    * get bucket name
+    * @params bucket path
+    * return Options<bucket name>
+    */
     pub fn get_name(path: &PathBuf) -> Option<String> {
         let name = path.file_name()?.to_os_string().into_string().ok()?;
         Some(name)
