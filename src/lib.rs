@@ -16,16 +16,6 @@ pub struct Args {
     pub exclude_bin: bool,
 }
 
-pub fn get_query(mut args: env::Args) -> Result<String, &'static str> {
-    args.next();
-    let query = match args.next() {
-        Some(arg) => arg,
-        None => return Err("Didn't get a query"),
-    };
-
-    Ok(query.to_lowercase())
-}
-
 pub fn parse_args(args: env::Args) -> Result<Args, &'static str> {
     let args: Vec<String> = args.collect();
     let query: String;
