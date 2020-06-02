@@ -18,8 +18,8 @@ scoop install https://raw.githubusercontent.com/tokiedokie/scoop-search/master/s
 ```sh
 scoop-search <query>
 ```
-this command search apps very quick.
-this search app manufect file names and remote buckets apps, if there is no app which contains wuery, then search binary file.
+This command searches apps very quickly.
+This searches local app manifest files and remote bucket apps. If there is no app manifest filename which contains `query`, then it searches for binary files.
 
 
 ```sh
