@@ -77,14 +77,14 @@ impl Bucket {
         let mut app_in_local = false;
 
         for bucket_path in bucket_paths {
-            let bucket_name = Bucket::get_name(&bucket_path).unwrap_or(String::new());
+            let bucket_name = Bucket::get_name(&bucket_path).unwrap_or_default();
             let app_paths = App::get_app_paths(&bucket_path)?;
 
             let apps: Vec<App> = app_paths.iter().map(|path| App::new(path)).collect();
 
             let filtered_apps = App::search_apps(&apps, query);
 
-            if filtered_apps.len() > 0 {
+            if !filtered_apps.is_empty() {
                 app_in_local = true;
                 crate::display_apps(&bucket_name, &filtered_apps);
             }
