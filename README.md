@@ -13,7 +13,7 @@ scoop-search is a tool for a windows package manager [scoop](https://scoop.sh/)
 scoop install https://raw.githubusercontent.com/tokiedokie/scoop-search/master/scoop-search.json
 ```
 
-## Usege
+## Usage
 
 ```sh
 scoop-search <query>
