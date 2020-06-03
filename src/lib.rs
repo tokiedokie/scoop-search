@@ -67,7 +67,7 @@ fn search_include_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> 
             Some(buckets) => {
                 println!("Results from other known buckets...");
                 println!("(add them using 'scoop bucket add <name>')");
-                println!("");
+                println!();
                 display_buckets(&buckets);
             }
             None => println!("No matches found."),
@@ -91,7 +91,7 @@ fn search_exclude_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> 
                 Some(buckets) => {
                     println!("Results from other known buckets...");
                     println!("(add them using 'scoop bucket add <name>')");
-                    println!("");
+                    println!();
                     display_buckets(&buckets);
                 }
                 None => match Bucket::search_include_bin(&bucket_paths, query) {
@@ -130,7 +130,7 @@ fn display_apps(bucket_name: &str, apps: &Vec<App>) {
                 println!("    {}", app.name);
             }
         }
-        println!("");
+        println!();
     }
 }
 
