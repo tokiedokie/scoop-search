@@ -61,7 +61,7 @@ fn search_include_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> 
     if Bucket::search_include_bin(&bucket_paths, query).is_none() {
         let local_bucket_names = &bucket_paths
             .iter()
-            .map(|path| Bucket::get_name(path).unwrap_or(String::new()))
+            .map(|path| Bucket::get_name(path).unwrap_or_default())
             .collect();
         match Bucket::search_remote_buckets(scoop, local_bucket_names, query) {
             Some(buckets) => {
@@ -85,7 +85,7 @@ fn search_exclude_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> 
         None => {
             let local_bucket_names = &bucket_paths
                 .iter()
-                .map(|path| Bucket::get_name(path).unwrap_or(String::new()))
+                .map(|path| Bucket::get_name(path).unwrap_or_default())
                 .collect();
             match Bucket::search_remote_buckets(scoop, local_bucket_names, query) {
                 Some(buckets) => {
@@ -106,7 +106,7 @@ fn search_exclude_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> 
 }
 
 pub fn run(scoop: &Scoop, args: &Args) -> Result<(), Box<dyn Error>> {
-    if args.exclude_bin == true {
+    if args.exclude_bin {
         search_exclude_bin(scoop, &args.query)
     } else {
         search_include_bin(scoop, &args.query)
@@ -114,11 +114,11 @@ pub fn run(scoop: &Scoop, args: &Args) -> Result<(), Box<dyn Error>> {
 }
 
 fn display_apps(bucket_name: &str, apps: &Vec<App>) {
-    if apps.len() > 0 {
+    if !apps.is_empty() {
         println!("'{}' bucket: ", bucket_name,);
         for app in apps {
             if app.version != "" {
-                if app.bin.len() > 0 {
+                if !app.bin.is_empty() {
                     println!(
                         "    {} ({}) --> includes '{}'",
                         app.name, app.version, app.bin[0]

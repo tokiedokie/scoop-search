@@ -106,11 +106,11 @@ impl App {
 
         let tree = response_json
             .get("tree")
-            .ok_or(Box::<dyn Error>::from("Can't get remote repository"))?;
+            .ok_or_else(|| Box::<dyn Error>::from("Can't get remote repository"))?;
 
         let filtered: Vec<App> = tree
             .as_array()
-            .ok_or(Box::<dyn Error>::from(format!(
+            .ok_or_else(|| Box::<dyn Error>::from(format!(
                 "{} key `tree` is invalid",
                 remote_url
             )))?
