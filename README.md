@@ -3,7 +3,7 @@
 
 # scoop-search
 
-scoop-search is a tool for a windows package maneger [scoop](https://scoop.sh/)
+scoop-search is a tool for a windows package manager [scoop](https://scoop.sh/)
 
 `scoop-search` instead of `scoop search`
 
