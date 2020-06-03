@@ -41,9 +41,7 @@ impl Scoop {
         //Ok(config.get("rootPath").is_some())
         Ok(config
             .get("rootPath")
-            .ok_or_else(|| Box::<dyn Error>::from(
-                "Can't get rootPath in scoop/config.json",
-            ))?
+            .ok_or_else(|| Box::<dyn Error>::from("Can't get rootPath in scoop/config.json"))?
             .to_string())
     }
 }
