@@ -53,7 +53,7 @@ pub fn parse_args(args: env::Args) -> Result<Args, &'static str> {
         exclude_bin,
     })
 }
- 
+
 ///this function display result so you don't need to treat it.
 fn search_include_bin(scoop: &Scoop, query: &str) -> Result<(), Box<dyn Error>> {
     let bucket_paths = Bucket::get_bucket_paths(scoop);
