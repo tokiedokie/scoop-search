@@ -101,19 +101,19 @@ impl Bucket {
         let mut buckets: Vec<Bucket> = Vec::new();
 
         for bucket_path in bucket_paths {
-            let bucket_name = Bucket::get_name(&bucket_path).unwrap_or(String::new());
+            let bucket_name = Bucket::get_name(&bucket_path).unwrap_or_default();
             let app_paths = App::get_app_paths(&bucket_path)?;
 
             let filtered_apps: Vec<App> = app_paths
                 .iter()
                 .filter(|app_path| {
                     App::get_name(app_path)
-                        .unwrap_or(String::from(""))
+                        .unwrap_or_default()
                         .to_lowercase()
                         .contains(query)
                 })
                 .map(|app_path| {
-                    let name = App::get_name(app_path).unwrap_or(String::new());
+                    let name = App::get_name(app_path).unwrap_or_default();
                     let (version, _) =
                         App::get_version_bin(app_path).unwrap_or((String::new(), Vec::new()));
                     App {
@@ -129,7 +129,7 @@ impl Bucket {
 
         if buckets
             .iter()
-            .find(|bucket| bucket.apps.len() != 0)
+            .find(|bucket| !bucket.apps.is_empty())
             .is_some()
         {
             return Some(buckets);
@@ -146,7 +146,7 @@ impl Bucket {
         let mut buckets: Vec<Bucket> = Vec::new();
 
         let remote_names_urls =
-            Bucket::get_remote_names_urls(&scoop, &local_bucket_names).unwrap_or(Vec::new());
+            Bucket::get_remote_names_urls(&scoop, &local_bucket_names).unwrap_or_default();
         for remote_name_url in remote_names_urls {
             let remote_name = remote_name_url.0;
             let remote_url = remote_name_url.1;
