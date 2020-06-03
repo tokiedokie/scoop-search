@@ -11,7 +11,7 @@ pub struct App {
 
 impl App {
     pub fn new(path: &PathBuf) -> App {
-        let name = App::get_name(&path).unwrap_or(String::from(""));
+        let name = App::get_name(&path).unwrap_or_default();
         let (version, bin) = App::get_version_bin(&path).unwrap_or((String::new(), Vec::new()));
         App { name, version, bin }
     }
@@ -84,7 +84,7 @@ impl App {
                 for bin in &app.bin {
                     let bin = Path::new(&bin)
                         .file_name()
-                        .unwrap_or(std::ffi::OsStr::new(""))
+                        .unwrap_or_default()
                         .to_string_lossy()
                         .to_string();
                     if bin.to_lowercase().contains(query) {
