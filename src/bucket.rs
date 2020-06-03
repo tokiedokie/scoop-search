@@ -158,7 +158,7 @@ impl Bucket {
 
         if buckets
             .iter()
-            .find(|bucket| bucket.apps.len() != 0)
+            .find(|bucket| !bucket.apps.is_empty())
             .is_some()
         {
             return Some(buckets);
