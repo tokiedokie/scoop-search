@@ -1,10 +1,10 @@
 {
     "version": "0.5.9",
     "license": "MIT",
-    "url": "https://github.com/tokiedokie/scoop-search/releases/download/v0.5.8/scoop-search.exe",
+    "url": "https://github.com/tokiedokie/scoop-search/releases/download/v0.5.9/scoop-search.exe",
     "homepage": "https://github.com/tokiedokie/scoop-search",
     "description": "yet another scoop search",
-    "hash": "dd685950744438794c1ba5a92532743352c7df278e89d36fc53680fe5acdcbfc",
+    "hash": "16b727c2a1c84871134ea2a1951d90f634f10af8e56ff9367c031ac6d3e8adad",
     "bin": "scoop-search.exe",
     "checkver": "github",
     "autoupdate": {
