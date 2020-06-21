@@ -37,6 +37,30 @@ impl App {
             Some(x) => match x.as_str() {
                 Some(bin) => vec![bin.to_string()],
                 None => match x.as_array() {
+                    Some(values) => {
+                        let mut result: Vec<String> = Vec::new();
+                        
+                        for value in values {
+                            match value.as_str() {
+                                Some(bin) => {
+                                    result.push(bin.to_string());
+                                },
+                                None => if let Some(bins) = value.as_array() {
+                                    result.extend(bins
+                                        .clone()
+                                        .iter()
+                                        .map(|bin| match bin.as_str() {
+                                            Some(str) => str.to_string(),
+                                            None => String::new(),
+                                        })) 
+                                },
+                            }
+                        }
+                        result
+                    },
+                    None => Vec::new(),
+
+                    /*
                     Some(bins) => bins
                         .clone()
                         .iter()
@@ -46,6 +70,7 @@ impl App {
                         })
                         .collect(),
                     None => Vec::new(),
+                    */
                 },
             },
             None => Vec::new(),
