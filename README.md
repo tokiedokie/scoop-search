@@ -26,4 +26,4 @@ This searches local app manifest files and remote bucket apps. If there is no ap
 ```sh
 scoop-search --bin <query>
 ```
-same as `scoop search`
+Almost same as `scoop search`, but faster.
