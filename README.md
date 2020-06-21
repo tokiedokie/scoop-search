@@ -8,6 +8,8 @@ scoop-search is a tool for a windows package manager [scoop](https://scoop.sh/)
 
 `scoop-search` instead of `scoop search`
 
+![sample](https://raw.githubusercontent.com/tokiedokie/scoop-search/master/images/sample.gif)
+
 ## Installation
 
 ```sh
