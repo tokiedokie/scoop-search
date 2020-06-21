@@ -59,18 +59,6 @@ impl App {
                         result
                     },
                     None => Vec::new(),
-
-                    /*
-                    Some(bins) => bins
-                        .clone()
-                        .iter()
-                        .map(|bin| match bin.as_str() {
-                            Some(str) => str.to_string(),
-                            None => String::new(),
-                        })
-                        .collect(),
-                    None => Vec::new(),
-                    */
                 },
             },
             None => Vec::new(),
