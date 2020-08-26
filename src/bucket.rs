@@ -102,7 +102,7 @@ impl Bucket {
 
         for bucket_path in bucket_paths {
             let bucket_name = Bucket::get_name(&bucket_path).unwrap_or_default();
-            let app_paths = App::get_app_paths(&bucket_path)?;
+            let app_paths = App::get_app_paths(&bucket_path).unwrap_or_default();
 
             let filtered_apps: Vec<App> = app_paths
                 .iter()
@@ -124,7 +124,7 @@ impl Bucket {
                 })
                 .collect();
 
-            buckets.push(Bucket::new(bucket_name, filtered_apps))
+            buckets.push(Bucket::new(bucket_name, filtered_apps));
         }
 
         if buckets
@@ -133,7 +133,7 @@ impl Bucket {
             .is_some()
         {
             return Some(buckets);
-        }
+        };
 
         None
     }
